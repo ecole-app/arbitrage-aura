@@ -338,13 +338,16 @@ Réponds UNIQUEMENT en JSON strict, sans texte avant ou après, sans balises mar
 
     const resp = await fetch(OR_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OR_KEY}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OR_KEY}`, 'HTTP-Referer': 'https://ecole-app.github.io', 'X-Title': 'Arbitrage AURA' },
       body: JSON.stringify(body)
     });
     const data = await resp.json();
+    console.log('OpenRouter response:', JSON.stringify(data).slice(0, 500));
+    if(data.error) { setSt('❌ API: ' + (data.error.message||JSON.stringify(data.error))); document.getElementById('ov').classList.remove('on'); return; }
     const txt = data?.choices?.[0]?.message?.content || '';
+    console.log('OCR text:', txt);
     let d={};
-    try{ d=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){ console.error('JSON parse fail',txt); }
+    try{ d=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){ console.error('JSON parse fail',txt); setSt('⚠️ Réponse inattendue — ' + txt.slice(0,80)); document.getElementById('ov').classList.remove('on'); return; }
 
     document.getElementById('ov').classList.remove('on');
 
