@@ -9,146 +9,111 @@
 <title>Arbitrage — Hachemi</title>
 <style>
 :root {
-  --bg: #0d1117;
-  --s1: #161b22;
-  --s2: #1f2937;
-  --s3: #263147;
-  --b: #30363d;
-  --acc: #3b82f6;
-  --grn: #10b981;
-  --grn2: #065f46;
-  --yel: #f59e0b;
-  --yel2: #78350f;
-  --red: #ef4444;
-  --pur: #8b5cf6;
-  --txt: #e6edf3;
-  --mut: #7d8590;
-  --r: 10px;
-  --st: env(safe-area-inset-top,0px);
-  --sb: env(safe-area-inset-bottom,0px);
+  --bg:#0d1117;--s1:#161b22;--s2:#1f2937;--b:#30363d;
+  --acc:#3b82f6;--grn:#10b981;--grn2:#065f46;--yel:#f59e0b;--yel2:#78350f;
+  --red:#ef4444;--pur:#8b5cf6;--txt:#e6edf3;--mut:#7d8590;--r:10px;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',system-ui,sans-serif}
 body{padding-top:var(--st);padding-bottom:var(--sb)}
-
-/* ── TOPBAR ── */
 .bar{position:sticky;top:var(--st);background:var(--s1);border-bottom:1px solid var(--b);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:100}
 .bar-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px}
-.pill{font-size:.6rem;font-weight:700;background:var(--acc);color:#fff;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.pill{font-size:.6rem;font-weight:700;background:var(--acc);color:#fff;padding:2px 8px;border-radius:20px;text-transform:uppercase}
 nav{display:flex;gap:5px;flex-wrap:wrap}
 nav button{padding:6px 13px;border-radius:8px;border:1px solid var(--b);background:transparent;color:var(--mut);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
 nav button.on,nav button:hover{background:var(--acc);border-color:var(--acc);color:#fff}
-
-/* ── LAYOUT ── */
 main{max-width:900px;margin:0 auto;padding:20px 14px}
-.page{display:none}
-.page.on{display:block}
+.page{display:none}.page.on{display:block}
 
-/* ── UPLOAD ── */
+/* UPLOAD */
 .upload-label{display:block;border:2px dashed var(--b);border-radius:var(--r);background:var(--s1);padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:18px;-webkit-tap-highlight-color:transparent;user-select:none}
-.upload-label:hover,.upload-label:active{border-color:var(--acc);background:var(--s2)}
-.upload-label .ic{font-size:2.2rem;margin-bottom:10px}
-.upload-label p{color:var(--mut);font-size:.86rem;line-height:1.5}
-.upload-label p strong{color:var(--txt)}
+.upload-label:active{border-color:var(--acc);background:var(--s2)}
+.upload-label .ic{font-size:2.5rem;margin-bottom:10px}
+.upload-label p{color:var(--mut);font-size:.9rem;line-height:1.6}
+.upload-label p strong{color:var(--txt);font-size:1rem}
 #file-in{display:none}
-
 #preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--b);margin-bottom:14px;display:none}
-.ocr-st{font-size:.8rem;color:var(--mut);margin-bottom:14px;display:flex;align-items:center;gap:6px;min-height:20px}
+.ocr-st{font-size:.82rem;color:var(--mut);margin-bottom:14px;min-height:22px;display:flex;align-items:center;gap:7px}
 
-/* ── CARD / FORM ── */
+/* CARD / FORM */
 .card{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:14px}
-.card-t{font-size:.72rem;font-weight:700;color:var(--mut);letter-spacing:.05em;margin-bottom:14px}
+.card-t{font-size:.72rem;font-weight:700;color:var(--mut);letter-spacing:.05em;margin-bottom:14px;text-transform:uppercase}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
 @media(max-width:520px){.fg{grid-template-columns:1fr}}
 .full{grid-column:1/-1}
-.f label{display:block;font-size:.72rem;font-weight:600;color:var(--mut);margin-bottom:4px}
-.f input,.f select{width:100%;padding:10px 11px;background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.88rem;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.f label{display:block;font-size:.72rem;font-weight:600;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.f input,.f select{width:100%;padding:10px 11px;background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.88rem;outline:none;transition:border-color .15s;-webkit-appearance:none}
 .f input:focus,.f select:focus{border-color:var(--acc)}
-.f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237d8590' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.86rem;font-weight:700;transition:all .15s;-webkit-tap-highlight-color:transparent}
-.btn-acc{background:var(--acc);color:#fff}
-.btn-acc:hover{filter:brightness(1.1)}
-.btn-acc:disabled{opacity:.4;cursor:not-allowed}
+.btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{filter:brightness(1.1)}.btn-acc:disabled{opacity:.4;cursor:not-allowed}
 .btn-g{background:transparent;border:1px solid var(--b);color:var(--txt)}
-.btn-g:hover{border-color:var(--acc);color:var(--acc)}
 .btn-grn{background:var(--grn2);color:var(--grn);border:1px solid var(--grn)}
 
-/* ── STATS ── */
+/* STATS */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin-bottom:20px}
 .stat{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:15px}
-.stat .lbl{font-size:.68rem;font-weight:600;color:var(--mut);margin-bottom:5px}
+.stat .lbl{font-size:.68rem;font-weight:600;color:var(--mut);margin-bottom:5px;text-transform:uppercase}
 .stat .val{font-size:1.55rem;font-weight:800;line-height:1}
 .stat .sub{font-size:.72rem;color:var(--mut);margin-top:4px}
 .c-b{color:var(--acc)}.c-g{color:var(--grn)}.c-y{color:var(--yel)}.c-p{color:var(--pur)}
 
-/* ── TABLE ── */
+/* TABLE */
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
-th{text-align:left;padding:8px 10px;background:var(--s2);color:var(--mut);font-size:.68rem;font-weight:700;border-bottom:1px solid var(--b)}
-td{padding:10px 10px;border-bottom:1px solid var(--b);vertical-align:middle}
+th{text-align:left;padding:8px 10px;background:var(--s2);color:var(--mut);font-size:.68rem;font-weight:700;border-bottom:1px solid var(--b);text-transform:uppercase}
+td{padding:10px;border-bottom:1px solid var(--b);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--s2)}
 
-/* ── BADGES ── */
+/* BADGES */
 .bdg{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.68rem;font-weight:700}
-.bdg-pnm{background:#1e3a5f;color:#60a5fa}
-.bdg-com{background:#2d1f52;color:#a78bfa}
-.bdg-ok{background:var(--grn2);color:var(--grn)}
-.bdg-w{background:var(--yel2);color:var(--yel)}
+.bdg-pnm{background:#1e3a5f;color:#60a5fa}.bdg-com{background:#2d1f52;color:#a78bfa}
+.bdg-ok{background:var(--grn2);color:var(--grn)}.bdg-w{background:var(--yel2);color:var(--yel)}
 
-/* ── SECTION HEADER ── */
-.sh{display:flex;align-items:center;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--mut);letter-spacing:.05em;margin-bottom:11px}
-.sh select{padding:5px 9px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--txt);font-size:.76rem;cursor:pointer;outline:none}
-
-/* ── MONTH ROW ── */
+/* MISC */
+.sh{display:flex;align-items:center;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--mut);margin-bottom:11px;text-transform:uppercase}
+.sh select{padding:5px 9px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--txt);font-size:.76rem;cursor:pointer;outline:none;text-transform:none;font-weight:400}
 .mr{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
 .mr label{font-size:.78rem;font-weight:600;color:var(--mut)}
 .mr select{padding:8px 11px;background:var(--s1);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.86rem;outline:none;cursor:pointer}
-
-/* ── TAGS ── */
 .tags{display:flex;flex-wrap:wrap;gap:7px}
 .tag{background:var(--s2);border:1px solid var(--b);border-radius:20px;padding:4px 11px;font-size:.76rem}
-
-/* ── BARS ── */
 .col-bar{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .col-bar .nm{flex:1;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
 .col-bar .bg{flex:2;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
 .col-bar .fill{height:100%;border-radius:3px;background:var(--acc)}
 .col-bar .cnt{font-size:.74rem;color:var(--mut);min-width:28px;text-align:right}
-
-/* ── EMPTY ── */
 .empty{text-align:center;padding:38px 16px;color:var(--mut);font-size:.86rem}
 .empty .ic{font-size:1.9rem;margin-bottom:9px}
 
-/* ── OVERLAY ── */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200}
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200}
 .ov.on{display:flex}
-.ov-box{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:26px 34px;text-align:center}
-.spin{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;margin:0 auto 12px}
+.ov-box{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:28px 36px;text-align:center;max-width:280px}
+.spin{width:28px;height:28px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;margin:0 auto 14px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.ov-box p{color:var(--mut);font-size:.84rem}
+.ov-box p{color:var(--mut);font-size:.84rem;line-height:1.5}
+.sp-sm{width:12px;height:12px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;flex-shrink:0}
 
-/* ── SPINNER INLINE ── */
-.sp-sm{width:12px;height:12px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;display:inline-block}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:calc(18px + var(--sb));right:16px;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:11px 16px;font-size:.84rem;z-index:999;animation:tu .22s ease;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+/* TOAST */
+.toast{position:fixed;bottom:calc(18px + var(--sb));right:16px;left:16px;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:12px 16px;font-size:.84rem;z-index:999;animation:tu .22s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);text-align:center}
 @keyframes tu{from{opacity:0;transform:translateY(8px)}}
 
-/* ── SETTINGS ── */
+/* SETTINGS */
 .sc{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:14px}
 .sc h3{font-size:.88rem;font-weight:700;margin-bottom:13px}
-
-/* ── CHART ── */
-#chart-canvas{width:100%;display:block;margin-top:6px}
-
-/* DELETE BTN */
-.del{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 6px;border-radius:4px;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.del{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 6px;border-radius:4px;transition:color .15s}
 .del:hover{color:var(--red)}
-.tog{background:none;border:none;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.tog{background:none;border:none;cursor:pointer;padding:0}
+
+/* SUCCESS MATCH */
+.match-added{background:var(--grn2);border:1px solid var(--grn);border-radius:var(--r);padding:16px;margin-bottom:16px;display:none}
+.match-added .title{font-weight:700;color:var(--grn);margin-bottom:8px;font-size:.9rem}
+.match-added .detail{font-size:.82rem;color:var(--txt);line-height:1.8}
 </style>
 </head>
 <body>
@@ -156,64 +121,64 @@ tbody tr:hover{background:var(--s2)}
 <div class="ov" id="ov">
   <div class="ov-box">
     <div class="spin"></div>
-    <p>Analyse de la convocation…</p>
+    <p id="ov-msg">Analyse de la convocation en cours…</p>
   </div>
 </div>
 
 <div class="bar">
   <div class="bar-title">🏀 Arbitrage <span class="pill">AURA</span></div>
   <nav>
-    <button class="on" onclick="go('saisie',this)">➕</button>
-    <button onclick="go('dash',this)">📊</button>
-    <button onclick="go('matchs',this)">📋</button>
-    <button onclick="go('stats',this)">📈</button>
+    <button class="on" onclick="go('saisie',this)">➕ Saisie</button>
+    <button onclick="go('dash',this)">📊 Bilan</button>
+    <button onclick="go('matchs',this)">📋 Matchs</button>
+    <button onclick="go('stats',this)">📈 Stats</button>
     <button onclick="go('cfg',this)">⚙️</button>
   </nav>
 </div>
 
 <main>
 
-<!-- ══ SAISIE ══ -->
+<!-- SAISIE -->
 <div class="page on" id="page-saisie">
+
+  <div class="match-added" id="match-added">
+    <div class="title">✅ Match enregistré automatiquement !</div>
+    <div class="detail" id="match-added-detail"></div>
+  </div>
 
   <label class="upload-label" for="file-in">
     <div class="ic">📸</div>
-    <p><strong>Importer la convocation</strong></p>
-    <p>Photo, galerie ou fichier</p>
+    <p><strong>Importe ta convocation</strong></p>
+    <p>Photo ou galerie → lecture automatique</p>
   </label>
   <input type="file" id="file-in" accept="image/*">
-
   <img id="preview" alt="">
   <div class="ocr-st" id="ocr-st"></div>
 
-  <div class="card">
-    <div class="card-t">Informations du match</div>
+  <div class="card" id="form-card">
+    <div class="card-t">Saisie manuelle / correction</div>
     <div class="fg">
       <div class="f"><label>Date</label><input type="date" id="f-date"></div>
       <div class="f"><label>Heure</label><input type="time" id="f-heure"></div>
       <div class="f">
         <label>Compétition</label>
         <select id="f-comp">
-          <option value="">-- Choisir --</option>
+          <option value="">--</option>
           <option value="PNM">Pré-National (PNM)</option>
           <option value="NM3">Nationale 3</option>
-          <option value="DF3">DF3</option>
-          <option value="DF2">DF2</option>
-          <option value="DF1">DF1</option>
-          <option value="U20">U20</option>
-          <option value="U17">U17</option>
-          <option value="U15">U15</option>
-          <option value="U13">U13</option>
-          <option value="Autre">Autre</option>
+          <option value="DF3">DF3</option><option value="DF2">DF2</option>
+          <option value="DF1">DF1</option><option value="U20">U20</option>
+          <option value="U17">U17</option><option value="U15">U15</option>
+          <option value="U13">U13</option><option value="Autre">Autre</option>
         </select>
       </div>
       <div class="f"><label>N° Rencontre</label><input type="text" id="f-nr" placeholder="ex: 101007"></div>
-      <div class="f full"><label>Club domicile</label><input type="text" id="f-dom" placeholder="ex: Pontoise ULR Basket…"></div>
-      <div class="f full"><label>Club visiteur</label><input type="text" id="f-ext" placeholder="ex: Cercle Sportif de l'Ozon"></div>
-      <div class="f full"><label>Salle / Ville</label><input type="text" id="f-lieu" placeholder="ex: Saint-Just-Saint-Rambert"></div>
-      <div class="f"><label>Km aller</label><input type="number" id="f-km" placeholder="14" min="0" step="1"></div>
-      <div class="f"><label>Indemnité (€)</label><input type="number" id="f-indem" placeholder="56.20" min="0" step="0.10"></div>
-      <div class="f full"><label>Collègue arbitre</label><input type="text" id="f-col" placeholder="ex: DAGOT Angèle"></div>
+      <div class="f full"><label>Club domicile</label><input type="text" id="f-dom"></div>
+      <div class="f full"><label>Club visiteur</label><input type="text" id="f-ext"></div>
+      <div class="f full"><label>Salle / Ville</label><input type="text" id="f-lieu"></div>
+      <div class="f"><label>Km aller</label><input type="number" id="f-km" min="0" step="1"></div>
+      <div class="f"><label>Indemnité (€)</label><input type="number" id="f-indem" min="0" step="0.10"></div>
+      <div class="f full"><label>Collègue arbitre</label><input type="text" id="f-col"></div>
       <div class="f">
         <label>Remboursé par</label>
         <select id="f-pay">
@@ -232,13 +197,13 @@ tbody tr:hover{background:var(--s2)}
       <div class="f full"><label>Notes</label><input type="text" id="f-notes" placeholder="Remarques…"></div>
     </div>
     <div class="row">
-      <button class="btn btn-acc" id="save-btn" onclick="saveMatch()">💾 Enregistrer</button>
+      <button class="btn btn-acc" onclick="saveMatch()">💾 Enregistrer</button>
       <button class="btn btn-g" onclick="resetForm()">Effacer</button>
     </div>
   </div>
 </div>
 
-<!-- ══ DASHBOARD ══ -->
+<!-- DASHBOARD -->
 <div class="page" id="page-dash">
   <div class="mr">
     <label>Mois :</label><select id="d-mo"></select>
@@ -250,7 +215,7 @@ tbody tr:hover{background:var(--s2)}
   <div style="margin-top:6px"><button class="btn btn-grn" onclick="exportCSV()">⬇ Export CSV</button></div>
 </div>
 
-<!-- ══ MATCHS ══ -->
+<!-- MATCHS -->
 <div class="page" id="page-matchs">
   <div class="sh">
     <span>Matchs</span>
@@ -260,29 +225,27 @@ tbody tr:hover{background:var(--s2)}
   </div>
   <div class="tw">
     <table>
-      <thead>
-        <tr>
-          <th>Date</th><th>Compét.</th><th>Domicile</th><th>Visiteur</th>
-          <th>Km</th><th>€km</th><th>Ind.</th><th>Total</th>
-          <th>Collègue</th><th>Payeur</th><th>Statut</th><th></th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>Date</th><th>Compét.</th><th>Domicile</th><th>Visiteur</th>
+        <th>Km</th><th>€km</th><th>Ind.</th><th>Total</th>
+        <th>Collègue</th><th>Payeur</th><th>Statut</th><th></th>
+      </tr></thead>
       <tbody id="m-body"></tbody>
     </table>
   </div>
   <div class="empty" id="m-empty" style="display:none"><div class="ic">🏀</div><p>Aucun match</p></div>
 </div>
 
-<!-- ══ STATS ══ -->
+<!-- STATS -->
 <div class="page" id="page-stats">
   <div class="mr"><label>Saison :</label><select id="s-yr"></select></div>
   <div class="stats" id="s-stats"></div>
   <div class="card"><div class="card-t">Clubs (saison)</div><div id="s-clubs"></div></div>
   <div class="card"><div class="card-t">Collègues (saison)</div><div id="s-cols"></div></div>
-  <div class="card"><div class="card-t">Évolution mensuelle</div><canvas id="chart-canvas" height="140"></canvas></div>
+  <div class="card"><div class="card-t">Évolution mensuelle</div><canvas id="chart" height="140"></canvas></div>
 </div>
 
-<!-- ══ CONFIG ══ -->
+<!-- CONFIG -->
 <div class="page" id="page-cfg">
   <div class="sc">
     <h3>💰 Taux kilométrique</h3>
@@ -292,14 +255,14 @@ tbody tr:hover{background:var(--s2)}
     <button class="btn btn-acc" onclick="saveCfg()">Enregistrer</button>
   </div>
   <div class="sc">
-    <h3>📋 Indemnités par défaut</h3>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Pré-rempli selon la compétition.</p>
+    <h3>📋 Indemnités par défaut par compétition</h3>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Pré-rempli si OCR ne trouve pas le montant.</p>
     <div class="fg" id="c-rates"></div>
     <button class="btn btn-acc" onclick="saveRates()">Enregistrer</button>
   </div>
   <div class="sc">
     <h3>🗑 Données</h3>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Toutes les données sont stockées localement sur cet appareil.</p>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Données stockées localement sur cet appareil.</p>
     <button class="btn btn-g" style="border-color:var(--red);color:var(--red)" onclick="clearAll()">Effacer toutes les données</button>
   </div>
 </div>
@@ -307,43 +270,33 @@ tbody tr:hover{background:var(--s2)}
 </main>
 
 <script>
-// ════════════════ CONFIG ════════════════
+const GEMINI_KEY = 'AIzaSyAQ.Ab8RN6K1w2aEuHxiVESl5_X79moEBQz7_wZvrxez0GyHGqqVjQ';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
 const COMPS = ['PNM','NM3','DF3','DF2','DF1','U20','U17','U15','U13','Autre'];
 const DEF_RATES = {PNM:56.20,NM3:45,DF3:37.80,DF2:32,DF1:28,U20:20,U17:16,U15:14,U13:12,Autre:15};
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const STORE_KEY = 'arb_matchs';
-const CFG_KEY = 'arb_cfg';
+const SK = 'arb_matchs', CK = 'arb_cfg';
 
-// ════════════════ STATE ════════════════
-let matchs = [];
-let cfg = {kmRate:0.25, rates:{...DEF_RATES}};
+let matchs = [], cfg = {kmRate:0.25,rates:{...DEF_RATES}};
 
-// ════════════════ INIT ════════════════
-function init() {
-  try { matchs = JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); } catch(e){ matchs=[]; }
-  try { cfg = {...cfg,...JSON.parse(localStorage.getItem(CFG_KEY)||'{}')}; cfg.rates={...DEF_RATES,...(cfg.rates||{})}; } catch(e){}
-  buildSelectors();
-  buildRates();
-  renderDash();
-  renderMatchs();
-  renderStats();
+function init(){
+  try{ matchs=JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){ matchs=[]; }
+  try{ const c=JSON.parse(localStorage.getItem(CK)||'{}'); cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}}; }catch(e){}
+  buildSelectors(); buildRates();
+  renderDash(); renderMatchs(); renderStats(); populateFilter();
 
-  // Upload listener
-  document.getElementById('file-in').addEventListener('change', function(){
-    if(this.files && this.files[0]) handleFile(this.files[0]);
+  document.getElementById('file-in').addEventListener('change',function(){
+    if(this.files&&this.files[0]) handleFile(this.files[0]);
     this.value='';
   });
-
-  // Pré-remplir indemnité selon compétition
-  document.getElementById('f-comp').addEventListener('change', function(){
-    const v = this.value;
-    const cur = document.getElementById('f-indem').value;
-    if(v && !cur) document.getElementById('f-indem').value = cfg.rates[v]||DEF_RATES[v]||'';
+  document.getElementById('f-comp').addEventListener('change',function(){
+    if(this.value&&!document.getElementById('f-indem').value)
+      document.getElementById('f-indem').value=cfg.rates[this.value]||DEF_RATES[this.value]||'';
   });
 }
 
-// ════════════════ NAVIGATION ════════════════
-function go(name, btn){
+function go(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
   document.getElementById('page-'+name).classList.add('on');
@@ -354,48 +307,38 @@ function go(name, btn){
   if(name==='cfg') loadCfg();
 }
 
-// ════════════════ UPLOAD + OCR ════════════════
-async function handleFile(file) {
-  // Afficher preview
-  const prev = document.getElementById('preview');
-  const url = URL.createObjectURL(file);
-  prev.src = url; prev.style.display='block';
-  setSt('<span class="sp-sm"></span> Analyse…');
+// ── OCR GEMINI ──────────────────────────────────────────
+async function handleFile(file){
+  const prev=document.getElementById('preview');
+  prev.src=URL.createObjectURL(file); prev.style.display='block';
+  setSt('<span class="sp-sm"></span> Lecture de la convocation…');
+  document.getElementById('match-added').style.display='none';
   document.getElementById('ov').classList.add('on');
+  document.getElementById('ov-msg').textContent='Lecture de la convocation…';
 
-  try {
-    // Lire en base64
-    const b64 = await fileToB64(file);
-    const media = file.type && file.type.startsWith('image/') ? file.type : 'image/jpeg';
+  try{
+    const b64=await toB64(file);
+    const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
 
-    // Appel API Anthropic
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:600,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:media,data:b64}},
-            {type:'text',text:`Tu analyses une convocation de match de basket-ball française (Comité de la Loire BB ou Ligue AURA).
-Cherche les informations pour l'arbitre HACHEMI Sid Ahmed.
-Réponds UNIQUEMENT en JSON strict, sans texte avant ou après:
-{"date":"YYYY-MM-DD ou null","heure":"HH:MM ou null","competition":"PNM ou NM3 ou DF3 ou DF2 ou DF1 ou U20 ou U17 ou U15 ou U13 ou Autre ou null","num_rencontre":"string ou null","club_dom":"string ou null","club_ext":"string ou null","salle_ville":"string ou null","km_aller":number ou null,"indemnite":number ou null,"collegue":"Prénom NOM (pas HACHEMI) ou null","payeur":"Ligue ou Comite ou Associations ou null"}`}
-          ]
-        }]
-      })
-    });
+    const body={
+      contents:[{parts:[
+        {inline_data:{mime_type:mime,data:b64}},
+        {text:`Tu analyses une convocation de match de basket-ball française (Comité de la Loire BB ou Ligue AURA).
+Cherche les informations pour l'arbitre HACHEMI Sid Ahmed (ou Hachemi).
+Réponds UNIQUEMENT en JSON strict, sans texte avant ou après, sans balises markdown:
+{"date":"YYYY-MM-DD ou null","heure":"HH:MM ou null","competition":"PNM ou NM3 ou DF3 ou DF2 ou DF1 ou U20 ou U17 ou U15 ou U13 ou Autre ou null","num_rencontre":"string ou null","club_dom":"string ou null","club_ext":"string ou null","salle_ville":"string ou null","km_aller":number ou null,"indemnite":number ou null,"collegue":"Prénom NOM du co-arbitre (pas HACHEMI) ou null","payeur":"Ligue ou Comite ou Associations ou null"}`}
+      ]}]
+    };
+
+    const resp=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    const txt=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    let d={};
+    try{ d=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){ console.error('JSON parse fail',txt); }
 
     document.getElementById('ov').classList.remove('on');
 
-    if(!resp.ok) { setSt('⚠️ Serveur indisponible — saisie manuelle'); return; }
-    const data = await resp.json();
-    const txt = (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
-    let d={};
-    try { d=JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch(e){}
-
+    // Remplir le formulaire
     if(d.date) document.getElementById('f-date').value=d.date;
     if(d.heure) document.getElementById('f-heure').value=d.heure;
     if(d.competition) document.getElementById('f-comp').value=d.competition;
@@ -407,16 +350,59 @@ Réponds UNIQUEMENT en JSON strict, sans texte avant ou après:
     if(d.indemnite!=null) document.getElementById('f-indem').value=d.indemnite;
     if(d.collegue) document.getElementById('f-col').value=d.collegue;
     if(d.payeur) document.getElementById('f-pay').value=d.payeur;
-    setSt('✅ Analyse terminée — vérifie et enregistre');
 
-  } catch(e) {
+    // Auto-save si on a le minimum
+    if(d.date && d.club_dom){
+      autoSave(d);
+    } else {
+      setSt('⚠️ Infos incomplètes — vérifie et enregistre manuellement');
+    }
+
+  }catch(e){
     document.getElementById('ov').classList.remove('on');
     console.error(e);
     setSt('⚠️ Analyse impossible — saisie manuelle');
   }
 }
 
-function fileToB64(file){
+function autoSave(d){
+  const km=parseFloat(d.km_aller)||0;
+  const indem=parseFloat(d.indemnite)||0;
+  const kmEur=Math.round(km*cfg.kmRate*100)/100;
+  const m={
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
+    date:d.date, heure:d.heure||'',
+    competition:d.competition||'', rencontre:d.num_rencontre||'',
+    club_dom:d.club_dom||'', club_ext:d.club_ext||'',
+    lieu:d.salle_ville||'',
+    km, kmEur, indem,
+    total:Math.round((kmEur+indem)*100)/100,
+    collegue:d.collegue||'', payeur:d.payeur||'Ligue',
+    statut:'attente', notes:'', ts:Date.now()
+  };
+  matchs.unshift(m); save();
+
+  // Afficher le résumé
+  const det=document.getElementById('match-added-detail');
+  det.innerHTML=`
+    📅 ${fd(m.date)} ${m.heure?'à '+m.heure:''}<br>
+    🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>
+    ${m.competition?'🏆 '+m.competition+'<br>':''}
+    📍 ${m.lieu||'—'}<br>
+    🚗 ${m.km} km aller → ${m.kmEur.toFixed(2)} €<br>
+    💰 Indemnité : ${m.indem.toFixed(2)} € → <strong>Total : ${m.total.toFixed(2)} €</strong><br>
+    👤 Collègue : ${m.collegue||'—'}<br>
+    🏦 Payeur : ${m.payeur}
+  `;
+  document.getElementById('match-added').style.display='block';
+  setSt('✅ Enregistré automatiquement !');
+  // Reset preview après 3s
+  setTimeout(()=>{
+    document.getElementById('preview').style.display='none';
+  },3000);
+}
+
+function toB64(file){
   return new Promise((res,rej)=>{
     const r=new FileReader();
     r.onload=ev=>res(ev.target.result.split(',')[1]);
@@ -427,36 +413,29 @@ function fileToB64(file){
 
 function setSt(html){ document.getElementById('ocr-st').innerHTML=html; }
 
-// ════════════════ SAVE MATCH ════════════════
+// ── SAVE MATCH ──────────────────────────────────────────
 function saveMatch(){
   const date=document.getElementById('f-date').value;
   const dom=document.getElementById('f-dom').value.trim();
   if(!date||!dom){toast('⚠️ Date et club domicile obligatoires');return;}
-
   const km=parseFloat(document.getElementById('f-km').value)||0;
   const indem=parseFloat(document.getElementById('f-indem').value)||0;
   const kmEur=Math.round(km*cfg.kmRate*100)/100;
-
   const m={
-    id: Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
     date, heure:document.getElementById('f-heure').value,
     competition:document.getElementById('f-comp').value,
     rencontre:document.getElementById('f-nr').value.trim(),
     club_dom:dom, club_ext:document.getElementById('f-ext').value.trim(),
     lieu:document.getElementById('f-lieu').value.trim(),
-    km, kmEur, indem,
-    total:Math.round((kmEur+indem)*100)/100,
+    km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
     collegue:document.getElementById('f-col').value.trim(),
     payeur:document.getElementById('f-pay').value,
     statut:document.getElementById('f-st').value,
     notes:document.getElementById('f-notes').value.trim(),
     ts:Date.now()
   };
-
-  matchs.unshift(m);
-  save();
-  resetForm();
-  toast('✅ Match enregistré !');
+  matchs.unshift(m); save(); resetForm(); toast('✅ Match enregistré !');
 }
 
 function resetForm(){
@@ -467,42 +446,39 @@ function resetForm(){
   document.getElementById('f-st').value='attente';
   document.getElementById('preview').style.display='none';
   document.getElementById('ocr-st').innerHTML='';
+  document.getElementById('match-added').style.display='none';
 }
 
 function save(){
-  localStorage.setItem(STORE_KEY, JSON.stringify(matchs));
+  localStorage.setItem(SK,JSON.stringify(matchs));
   renderDash(); renderMatchs(); renderStats(); populateFilter();
 }
 
-// ════════════════ DASHBOARD ════════════════
+// ── DASHBOARD ──────────────────────────────────────────
 function buildSelectors(){
   const now=new Date();
-  const dMo=document.getElementById('d-mo');
-  const dYr=document.getElementById('d-yr');
-  const sYr=document.getElementById('s-yr');
-
+  const dMo=document.getElementById('d-mo'), dYr=document.getElementById('d-yr'), sYr=document.getElementById('s-yr');
   MONTHS.forEach((m,i)=>{
     const o=document.createElement('option');
     o.value=String(i+1).padStart(2,'0'); o.textContent=m;
     if(i===now.getMonth()) o.selected=true;
     dMo.appendChild(o);
   });
-  dMo.addEventListener('change', renderDash);
-
+  dMo.addEventListener('change',renderDash);
   for(let y=now.getFullYear();y>=2023;y--){
     const o=document.createElement('option'); o.value=y; o.textContent=y;
     if(y===now.getFullYear()) o.selected=true;
     dYr.appendChild(o.cloneNode(true));
-    const s=o.cloneNode(true); s.textContent=`${y-1}-${String(y).slice(2)}`; 
+    const s=document.createElement('option'); s.value=y; s.textContent=`${y-1}-${String(y).slice(2)}`;
+    if(y===now.getFullYear()) s.selected=true;
     sYr.appendChild(s);
   }
-  dYr.addEventListener('change', renderDash);
-  sYr.addEventListener('change', renderStats);
+  dYr.addEventListener('change',renderDash);
+  sYr.addEventListener('change',renderStats);
 }
 
 function getMonthMatchs(){
-  const mo=document.getElementById('d-mo').value;
-  const yr=String(document.getElementById('d-yr').value);
+  const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
   return matchs.filter(m=>m.date&&m.date.split('-')[0]===yr&&m.date.split('-')[1]===mo);
 }
 
@@ -514,35 +490,26 @@ function renderDash(){
   const tot=Math.round((ind+kmE)*100)/100;
   const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.total||0),0);
   const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.total||0),0);
-
   document.getElementById('d-stats').innerHTML=`
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div><div class="sub">${kmE.toFixed(2)} € (×${cfg.kmRate})</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
-    <div class="stat"><div class="lbl">Total brut</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>
-  `;
-
+    <div class="stat"><div class="lbl">Total brut</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
-  document.getElementById('d-clubs').innerHTML=clubs.length
-    ? clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join('')
-    : '<span style="color:var(--mut);font-size:.82rem">Aucun match ce mois</span>';
-
+  document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.82rem">Aucun match ce mois</span>';
   const cm={};list.forEach(m=>{if(m.collegue)cm[m.collegue]=(cm[m.collegue]||0)+1;});
-  const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]);
-  const mx=cv[0]?.[1]||1;
-  document.getElementById('d-cols').innerHTML=cv.length
-    ? cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join('')
-    : '<span style="color:var(--mut);font-size:.82rem">—</span>';
+  const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]),mx=cv[0]?.[1]||1;
+  document.getElementById('d-cols').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">—</span>';
 }
 
-// ════════════════ MATCHS TABLE ════════════════
+// ── MATCHS TABLE ──────────────────────────────────────────
 function populateFilter(){
   const sel=document.getElementById('m-fil');
   const months=[...new Set(matchs.map(m=>m.date?.slice(0,7)).filter(Boolean))].sort().reverse();
   const cur=sel.value;
   sel.innerHTML='<option value="">Tous</option>';
   months.forEach(mo=>{
-    const [y,m]=mo.split('-');
+    const[y,m]=mo.split('-');
     const o=document.createElement('option');
     o.value=mo; o.textContent=`${MONTHS[parseInt(m)-1]} ${y}`;
     if(mo===cur) o.selected=true;
@@ -553,8 +520,7 @@ function populateFilter(){
 function renderMatchs(){
   const fil=document.getElementById('m-fil').value;
   const list=fil?matchs.filter(m=>m.date?.startsWith(fil)):matchs;
-  const tb=document.getElementById('m-body');
-  const em=document.getElementById('m-empty');
+  const tb=document.getElementById('m-body'),em=document.getElementById('m-empty');
   if(!list.length){tb.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
   const isPnm=c=>c==='PNM'||c==='NM3';
@@ -563,35 +529,31 @@ function renderMatchs(){
     <td>${m.competition?`<span class="bdg ${isPnm(m.competition)?'bdg-pnm':'bdg-com'}">${m.competition}</span>`:'—'}</td>
     <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_dom||'—'}</td>
     <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_ext||'—'}</td>
-    <td>${m.km||0}</td>
-    <td>${(m.kmEur||0).toFixed(2)}€</td>
-    <td>${(m.indem||0).toFixed(2)}€</td>
-    <td><strong>${(m.total||0).toFixed(2)}€</strong></td>
-    <td style="white-space:nowrap">${m.collegue||'—'}</td>
+    <td>${m.km||0}</td><td>${(m.kmEur||0).toFixed(2)}€</td>
+    <td>${(m.indem||0).toFixed(2)}€</td><td><strong>${(m.total||0).toFixed(2)}€</strong></td>
+    <td>${m.collegue||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.payeur||'—'}</td>
     <td><button class="tog" onclick="toggleSt('${m.id}','${m.statut}')">${m.statut==='paye'?'<span class="bdg bdg-ok">Payé ✓</span>':'<span class="bdg bdg-w">Attente</span>'}</button></td>
     <td><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
   </tr>`).join('');
 }
 
-function toggleSt(id, cur){
-  const m=matchs.find(x=>x.id===id); if(!m) return;
-  m.statut=cur==='paye'?'attente':'paye';
-  save();
+function toggleSt(id,cur){
+  const m=matchs.find(x=>x.id===id);if(!m)return;
+  m.statut=cur==='paye'?'attente':'paye'; save();
 }
-
 function delMatch(id){
-  if(!confirm('Supprimer ce match ?')) return;
+  if(!confirm('Supprimer ?'))return;
   matchs=matchs.filter(m=>m.id!==id); save();
 }
 
-// ════════════════ STATS SAISON ════════════════
+// ── STATS SAISON ──────────────────────────────────────────
 function getSeasonMatchs(){
   const yr=parseInt(document.getElementById('s-yr').value||new Date().getFullYear());
   return matchs.filter(m=>{
-    if(!m.date) return false;
-    const [y,mo]=m.date.split('-'); const yy=parseInt(y),mm=parseInt(mo);
-    return (yy===yr-1&&mm>=9)||(yy===yr&&mm<=8);
+    if(!m.date)return false;
+    const[y,mo]=m.date.split('-');const yy=parseInt(y),mm=parseInt(mo);
+    return(yy===yr-1&&mm>=9)||(yy===yr&&mm<=8);
   });
 }
 
@@ -603,47 +565,34 @@ function renderStats(){
   const tot=Math.round((ind+kmE)*100)/100;
   const ligue=list.filter(m=>m.payeur==='Ligue').length;
   const pnm=list.filter(m=>m.competition==='PNM'||m.competition==='NM3').length;
-
   document.getElementById('s-stats').innerHTML=`
-    <div class="stat"><div class="lbl">Matchs saison</div><div class="val c-b">${list.length}</div></div>
+    <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km total</div><div class="val c-y">${km}</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)}€</div></div>
     <div class="stat"><div class="lbl">Total saison</div><div class="val c-g">${tot.toFixed(2)}€</div></div>
     <div class="stat"><div class="lbl">Matchs Ligue</div><div class="val c-p">${ligue}</div></div>
-    <div class="stat"><div class="lbl">Pré-National</div><div class="val c-b">${pnm}</div></div>
-  `;
-
-  // Clubs
+    <div class="stat"><div class="lbl">Pré-National</div><div class="val c-b">${pnm}</div></div>`;
   const cm={};list.forEach(m=>{if(m.club_dom)cm[m.club_dom]=(cm[m.club_dom]||0)+1;});
-  const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const mx=cv[0]?.[1]||1;
-  document.getElementById('s-clubs').innerHTML=cv.length
-    ? cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join('')
-    : '<span style="color:var(--mut);font-size:.82rem">Aucune donnée</span>';
-
-  // Collègues
+  const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,8),mx=cv[0]?.[1]||1;
+  document.getElementById('s-clubs').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">Aucune donnée</span>';
   const pm={};list.forEach(m=>{if(m.collegue)pm[m.collegue]=(pm[m.collegue]||0)+1;});
-  const pv=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
-  const mpx=pv[0]?.[1]||1;
-  document.getElementById('s-cols').innerHTML=pv.length
-    ? pv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mpx)*100}%;background:var(--pur)"></div></div><span class="cnt">${c}×</span></div>`).join('')
-    : '<span style="color:var(--mut);font-size:.82rem">—</span>';
-
+  const pv=Object.entries(pm).sort((a,b)=>b[1]-a[1]),mpx=pv[0]?.[1]||1;
+  document.getElementById('s-cols').innerHTML=pv.length?pv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mpx)*100}%;background:var(--pur)"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">—</span>';
   drawChart(list);
 }
 
 function drawChart(list){
-  const canvas=document.getElementById('chart-canvas'); if(!canvas) return;
+  const canvas=document.getElementById('chart');if(!canvas)return;
   const ctx=canvas.getContext('2d');
   const byM={};
-  list.forEach(m=>{if(!m.date)return; const k=m.date.slice(0,7); byM[k]=(byM[k]||0)+(m.total||0);});
-  const keys=Object.keys(byM).sort(); const vals=keys.map(k=>byM[k]);
-  const W=canvas.offsetWidth||800; canvas.width=W; canvas.height=150;
+  list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,7);byM[k]=(byM[k]||0)+(m.total||0);});
+  const keys=Object.keys(byM).sort(),vals=keys.map(k=>byM[k]);
+  const W=canvas.offsetWidth||800;canvas.width=W;canvas.height=150;
   if(!keys.length){ctx.fillStyle='#7d8590';ctx.font='13px system-ui';ctx.fillText('Pas encore de données',10,75);return;}
-  const pad={l:46,r:10,t:16,b:28}; const cW=W-pad.l-pad.r; const cH=150-pad.t-pad.b;
-  const max=Math.max(...vals)*1.15; const bW=Math.max(8,cW/keys.length-6);
+  const pad={l:46,r:10,t:16,b:28},cW=W-pad.l-pad.r,cH=150-pad.t-pad.b;
+  const max=Math.max(...vals)*1.15,bW=Math.max(8,cW/keys.length-6);
   ctx.clearRect(0,0,W,150);
-  ctx.strokeStyle='#30363d'; ctx.lineWidth=1;
+  ctx.strokeStyle='#30363d';ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+cH-(i/4)*cH;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
@@ -651,79 +600,66 @@ function drawChart(list){
     ctx.fillText(Math.round((i/4)*max)+'€',pad.l-4,y+3);
   }
   keys.forEach((k,i)=>{
-    const bH=(vals[i]/max)*cH; const x=pad.l+i*(cW/keys.length)+(cW/keys.length-bW)/2; const y=pad.t+cH-bH;
-    const g=ctx.createLinearGradient(0,y,0,pad.t+cH); g.addColorStop(0,'#3b82f6');g.addColorStop(1,'#1d4ed8');
-    ctx.fillStyle=g; ctx.beginPath();
-    if(ctx.roundRect) ctx.roundRect(x,y,bW,bH,3); else ctx.rect(x,y,bW,bH);
+    const bH=(vals[i]/max)*cH,x=pad.l+i*(cW/keys.length)+(cW/keys.length-bW)/2,y=pad.t+cH-bH;
+    const g=ctx.createLinearGradient(0,y,0,pad.t+cH);g.addColorStop(0,'#3b82f6');g.addColorStop(1,'#1d4ed8');
+    ctx.fillStyle=g;ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,y,bW,bH,3);else ctx.rect(x,y,bW,bH);
     ctx.fill();
-    const [,mo]=k.split('-');
+    const[,mo]=k.split('-');
     ctx.fillStyle='#7d8590';ctx.font='9px system-ui';ctx.textAlign='center';
     ctx.fillText(MONTHS[parseInt(mo)-1].slice(0,3),x+bW/2,150-pad.b+14);
   });
 }
 
-// ════════════════ CONFIG ════════════════
+// ── CONFIG ──────────────────────────────────────────
 function buildRates(){
   document.getElementById('c-rates').innerHTML=COMPS.map(c=>`
-    <div class="f"><label>${c}</label><input type="number" id="cr-${c}" step="0.10" min="0" placeholder="${DEF_RATES[c]||''}"></div>
-  `).join('');
+    <div class="f"><label>${c}</label><input type="number" id="cr-${c}" step="0.10" min="0" placeholder="${DEF_RATES[c]||''}"></div>`).join('');
 }
-
 function loadCfg(){
   document.getElementById('c-km').value=cfg.kmRate||0.25;
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el)el.value=cfg.rates[c]||DEF_RATES[c]||'';});
 }
-
 function saveCfg(){
   cfg.kmRate=parseFloat(document.getElementById('c-km').value)||0.25;
-  localStorage.setItem(CFG_KEY,JSON.stringify(cfg));
-  toast('✅ Taux sauvegardé');
+  localStorage.setItem(CK,JSON.stringify(cfg)); toast('✅ Taux sauvegardé');
 }
-
 function saveRates(){
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el&&el.value)cfg.rates[c]=parseFloat(el.value);});
-  localStorage.setItem(CFG_KEY,JSON.stringify(cfg));
-  toast('✅ Barèmes sauvegardés');
+  localStorage.setItem(CK,JSON.stringify(cfg)); toast('✅ Barèmes sauvegardés');
 }
-
 function clearAll(){
-  if(!confirm('Effacer TOUTES les données ? Irréversible.')) return;
-  localStorage.removeItem(STORE_KEY); localStorage.removeItem(CFG_KEY);
-  matchs=[]; cfg={kmRate:0.25,rates:{...DEF_RATES}};
-  save(); toast('Données effacées');
+  if(!confirm('Effacer TOUTES les données ?'))return;
+  localStorage.removeItem(SK);localStorage.removeItem(CK);
+  matchs=[];cfg={kmRate:0.25,rates:{...DEF_RATES}};
+  save();toast('Données effacées');
 }
 
-// ════════════════ EXPORT CSV ════════════════
+// ── EXPORT CSV ──────────────────────────────────────────
 function exportCSV(){
-  const list=getMonthMatchs(); if(!list.length){toast('⚠️ Aucune donnée');return;}
-  const mo=document.getElementById('d-mo').value; const yr=document.getElementById('d-yr').value;
-  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€Km','Indemnité','Total','Collègue','Payeur','Statut','Notes'];
-  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.total||0).toFixed(2),m.collegue||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente',m.notes||'']);
-  const totKm=list.reduce((s,m)=>s+(m.km||0),0);
-  const totI=list.reduce((s,m)=>s+(m.indem||0),0);
-  const totT=list.reduce((s,m)=>s+(m.total||0),0);
-  rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','','']);
+  const list=getMonthMatchs();if(!list.length){toast('⚠️ Aucune donnée');return;}
+  const mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
+  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€Km','Indemnité','Total','Collègue','Payeur','Statut'];
+  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.total||0).toFixed(2),m.collegue||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
+  const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0),totT=list.reduce((s,m)=>s+(m.total||0),0);
+  rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','']);
   const csv='\uFEFF'+[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const u=URL.createObjectURL(b); const a=document.createElement('a');
-  a.href=u; a.download=`arbitrage_${yr}_${mo}_${MONTHS[parseInt(mo)-1]}.csv`; a.click(); URL.revokeObjectURL(u);
+  const u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download=`arbitrage_${yr}_${mo}_${MONTHS[parseInt(mo)-1]}.csv`;a.click();URL.revokeObjectURL(u);
 }
 
-// ════════════════ UTILS ════════════════
+// ── UTILS ──────────────────────────────────────────
 function fd(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
-
 let _tt;
 function toast(msg,dur=3200){
   const ex=document.querySelector('.toast');if(ex)ex.remove();
   if(_tt)clearTimeout(_tt);
   const el=document.createElement('div');el.className='toast';el.textContent=msg;
-  document.body.appendChild(el);
-  _tt=setTimeout(()=>el.remove(),dur);
+  document.body.appendChild(el);_tt=setTimeout(()=>el.remove(),dur);
 }
 
-// ════════════════ START ════════════════
 init();
-populateFilter();
 </script>
 </body>
 </html>
