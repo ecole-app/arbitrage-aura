@@ -320,13 +320,13 @@ async function handleFile(file){
     const b64=await toB64(file);
     const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
 
-    const prompt = `Extract data from this French basketball referee assignment document.
-Return ONLY a JSON object, no other text, no markdown:
-{"date":"YYYY-MM-DD or null","heure":"HH:MM or null","competition":"PNM or NM3 or DF3 or DF2 or DF1 or U20 or U17 or U15 or U13 or Autre or null","num_rencontre":"string or null","club_dom":"home team name or null","club_ext":"away team name or null","salle_ville":"venue city or null","km_aller":number or null,"indemnite":number or null,"collegue":"co-referee name (not HACHEMI) or null","payeur":"Ligue or Comite or Associations or null"}
-Find HACHEMI Sid Ahmed's km_aller and indemnite values specifically.`;
+    const prompt = `This is a French basketball referee assignment letter. Read all text in the image carefully.
+Output ONLY a raw JSON object (no markdown, no explanation):
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or NM3 or DF3 or DF2 or DF1 or U20 or U17 or U15 or U13 or Autre","num_rencontre":"string","club_dom":"home club name","club_ext":"away club name","salle_ville":"venue and city","km_aller":14,"indemnite":56.20,"collegue":"co-referee full name","payeur":"Ligue or Comite or Associations"}
+Use null for missing fields. For km_aller and indemnite, find the row with HACHEMI in it.`;
 
     const body = {
-      model: "qwen/qwen2.5-vl-72b-instruct:free",
+      model: "openrouter/free",
       messages: [{
         role: "user",
         content: [
