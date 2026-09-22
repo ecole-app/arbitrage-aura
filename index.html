@@ -270,8 +270,8 @@ tbody tr:hover{background:var(--s2)}
 </main>
 
 <script>
-const GEMINI_KEY = 'AIzaSyAQ.Ab8RN6K1w2aEuHxiVESl5_X79moEBQz7_wZvrxez0GyHGqqVjQ';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const OR_KEY = ["sk-or-v1-fb2133c6cec2e24fa49f1fb3", "8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
+const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const COMPS = ['PNM','NM3','DF3','DF2','DF1','U20','U17','U15','U13','Autre'];
 const DEF_RATES = {PNM:56.20,NM3:45,DF3:37.80,DF2:32,DF1:28,U20:20,U17:16,U15:14,U13:12,Autre:15};
@@ -307,7 +307,7 @@ function go(name,btn){
   if(name==='cfg') loadCfg();
 }
 
-// ── OCR GEMINI ──────────────────────────────────────────
+// ── OCR OPENROUTER ──────────────────────────────────────────
 async function handleFile(file){
   const prev=document.getElementById('preview');
   prev.src=URL.createObjectURL(file); prev.style.display='block';
@@ -320,19 +320,29 @@ async function handleFile(file){
     const b64=await toB64(file);
     const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
 
-    const body={
-      contents:[{parts:[
-        {inline_data:{mime_type:mime,data:b64}},
-        {text:`Tu analyses une convocation de match de basket-ball française (Comité de la Loire BB ou Ligue AURA).
+    const prompt = `Tu analyses une convocation de match de basket-ball française (Comité de la Loire BB ou Ligue AURA).
 Cherche les informations pour l'arbitre HACHEMI Sid Ahmed (ou Hachemi).
 Réponds UNIQUEMENT en JSON strict, sans texte avant ou après, sans balises markdown:
-{"date":"YYYY-MM-DD ou null","heure":"HH:MM ou null","competition":"PNM ou NM3 ou DF3 ou DF2 ou DF1 ou U20 ou U17 ou U15 ou U13 ou Autre ou null","num_rencontre":"string ou null","club_dom":"string ou null","club_ext":"string ou null","salle_ville":"string ou null","km_aller":number ou null,"indemnite":number ou null,"collegue":"Prénom NOM du co-arbitre (pas HACHEMI) ou null","payeur":"Ligue ou Comite ou Associations ou null"}`}
-      ]}]
+{"date":"YYYY-MM-DD ou null","heure":"HH:MM ou null","competition":"PNM ou NM3 ou DF3 ou DF2 ou DF1 ou U20 ou U17 ou U15 ou U13 ou Autre ou null","num_rencontre":"string ou null","club_dom":"string ou null","club_ext":"string ou null","salle_ville":"string ou null","km_aller":number ou null,"indemnite":number ou null,"collegue":"Prénom NOM du co-arbitre (pas HACHEMI) ou null","payeur":"Ligue ou Comite ou Associations ou null"}`;
+
+    const body = {
+      model: "google/gemini-2.0-flash-exp:free",
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } },
+          { type: "text", text: prompt }
+        ]
+      }]
     };
 
-    const resp=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await resp.json();
-    const txt=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const resp = await fetch(OR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OR_KEY}` },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    const txt = data?.choices?.[0]?.message?.content || '';
     let d={};
     try{ d=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){ console.error('JSON parse fail',txt); }
 
