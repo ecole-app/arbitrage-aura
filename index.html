@@ -326,7 +326,7 @@ Réponds UNIQUEMENT en JSON strict, sans texte avant ou après, sans balises mar
 {"date":"YYYY-MM-DD ou null","heure":"HH:MM ou null","competition":"PNM ou NM3 ou DF3 ou DF2 ou DF1 ou U20 ou U17 ou U15 ou U13 ou Autre ou null","num_rencontre":"string ou null","club_dom":"string ou null","club_ext":"string ou null","salle_ville":"string ou null","km_aller":number ou null,"indemnite":number ou null,"collegue":"Prénom NOM du co-arbitre (pas HACHEMI) ou null","payeur":"Ligue ou Comite ou Associations ou null"}`;
 
     const body = {
-      model: "meta-llama/llama-3.2-11b-vision-instruct:free",
+      model: "openrouter/free",
       messages: [{
         role: "user",
         content: [
