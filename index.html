@@ -884,7 +884,7 @@ function drawPieChart(list){
   const cx=W/2,cy=90,r=75;
   let angle=-Math.PI/2;
   ctx.clearRect(0,0,W,180);
-  entries.forEach(([comp,val],i){
+  entries.forEach(([comp,val],i)=>{
     const slice=(val/total)*2*Math.PI;
     ctx.beginPath();ctx.moveTo(cx,cy);
     ctx.arc(cx,cy,r,angle,angle+slice);
