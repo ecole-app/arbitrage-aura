@@ -14,6 +14,16 @@
   --red:#ef4444;--pur:#8b5cf6;--txt:#e6edf3;--mut:#7d8590;--r:10px;
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
 }
+:root[data-theme="light"] {
+  --bg:#f4f6fa;--s1:#ffffff;--s2:#f0f2f7;--b:#dde1ea;
+  --txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;
+}
+@media(prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#f4f6fa;--s1:#ffffff;--s2:#f0f2f7;--b:#dde1ea;
+    --txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;
+  }
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',system-ui,sans-serif}
 body{padding-top:var(--st);padding-bottom:var(--sb)}
@@ -127,6 +137,7 @@ tbody tr:hover{background:var(--s2)}
 
 <div class="bar">
   <div class="bar-title">🏀 Arbitrage <span class="pill">AURA</span></div>
+  <button id="theme-btn" onclick="toggleTheme()" style="background:transparent;border:1px solid var(--b);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:1rem;color:var(--mut);-webkit-tap-highlight-color:transparent" title="Thème">🌙</button>
   <nav>
     <button class="on" onclick="go('saisie',this)">➕ Saisie</button>
     <button onclick="go('dash',this)">📊 Bilan</button>
@@ -699,7 +710,32 @@ function toast(msg,dur=3200){
   document.body.appendChild(el);_tt=setTimeout(()=>el.remove(),dur);
 }
 
+// ── THÈME ──────────────────────────────────────────
+function initTheme(){
+  const saved = localStorage.getItem('arb_theme');
+  if(saved) document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn();
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const sys = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  let next;
+  if(!cur){ next = sys === 'dark' ? 'light' : 'dark'; }
+  else if(cur === 'dark'){ next = 'light'; }
+  else { next = 'dark'; }
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('arb_theme', next);
+  updateThemeBtn();
+}
+function updateThemeBtn(){
+  const theme = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+}
+
 init();
+initTheme();
 </script>
 </body>
 </html>
