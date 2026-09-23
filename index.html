@@ -164,28 +164,33 @@ tbody tr:hover{background:var(--s2)}
         <label>Compétition</label>
         <select id="f-comp">
           <option value="">--</option>
-          <optgroup label="Pré-National">
-            <option value="PNM">PNM — Masculin</option>
-            <option value="PNF">PNF — Féminin</option>
+          <optgroup label="🏆 National">
+            <option value="PNM">Pré-National M</option>
+            <option value="PNF">Pré-National F</option>
+            <option value="NM3">Nationale 3 M</option>
+            <option value="NF3">Nationale 3 F</option>
           </optgroup>
-          <optgroup label="Nationale 3">
-            <option value="NM3">NM3 — Masculin</option>
-            <option value="NF3">NF3 — Féminin</option>
+          <optgroup label="🥈 Régional">
+            <option value="R2M">Régionale 2 M</option>
+            <option value="R2F">Régionale 2 F</option>
+            <option value="R3M">Régionale 3 M</option>
+            <option value="R3F">Régionale 3 F</option>
           </optgroup>
-          <optgroup label="Départemental">
-            <option value="DF3">DF3</option>
-            <option value="DF2">DF2</option>
-            <option value="DF1">DF1</option>
+          <optgroup label="🥉 Départemental">
+            <option value="R1M">Régionale 1 M (Dépt.)</option>
+            <option value="R1F">Régionale 1 F (Dépt.)</option>
           </optgroup>
-          <optgroup label="Jeunes">
-            <option value="U21M">U21 Masculin</option>
-            <option value="U21F">U21 Féminin</option>
-            <option value="U17M">U17 Masculin</option>
-            <option value="U17F">U17 Féminin</option>
-            <option value="U15M">U15 Masculin</option>
-            <option value="U15F">U15 Féminin</option>
-            <option value="U13M">U13 Masculin</option>
-            <option value="U13F">U13 Féminin</option>
+          <optgroup label="👦 Jeunes">
+            <option value="U21M">U21 M</option>
+            <option value="U21F">U21 F</option>
+            <option value="U17M">U17 M</option>
+            <option value="U17F">U17 F</option>
+            <option value="U15M">U15 M</option>
+            <option value="U15F">U15 F</option>
+            <option value="U13M">U13 M</option>
+            <option value="U13F">U13 F</option>
+            <option value="U11M">U11 M</option>
+            <option value="U11F">U11 F</option>
           </optgroup>
           <option value="Autre">Autre</option>
         </select>
@@ -291,8 +296,8 @@ tbody tr:hover{background:var(--s2)}
 const OR_KEY = ["sk-or-v1-fb2133c6cec2e24fa49f1fb3", "8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
 const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-const COMPS = ['PNM','PNF','NM3','NF3','DF3','DF2','DF1','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','Autre'];
-const DEF_RATES = {PNM:45,PNF:45,NM3:43,NF3:43,DF3:43,DF2:41,DF1:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,Autre:34}; // Barème AURA 2026-2027
+const COMPS = ['PNM','PNF','NM3','NF3','R3M','R3F','R2M','R2F','R1M','R1F','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','U11M','U11F','Autre'];
+const DEF_RATES = {PNM:45,PNF:45,NM3:43,NF3:43,R3M:43,R3F:43,R2M:43,R2F:43,R1M:41,R1F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:34}; // Barème AURA 2026-2027
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const SK = 'arb_matchs', CK = 'arb_cfg';
 
@@ -340,7 +345,7 @@ async function handleFile(file){
 
     const prompt = `This is a French basketball referee assignment letter. Read all text in the image carefully.
 Output ONLY a raw JSON object (no markdown, no explanation):
-{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or NM3 or DF3 or DF2 or DF1 or U20 or U17 or U15 or U13 or Autre","num_rencontre":"string","club_dom":"home club name","club_ext":"away club name","salle_ville":"venue and city","km_aller":14,"indemnite":56.20,"collegue":"co-referee full name","payeur":"Ligue or Comite or Associations"}
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or R1M or R1F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club name","club_ext":"away club name","salle_ville":"venue and city","km_aller":14,"indemnite":56.20,"collegue":"co-referee full name","payeur":"Ligue or Comite or Associations"}
 Use null for missing fields. For km_aller and indemnite, find the row with HACHEMI in it.`;
 
     const body = {
