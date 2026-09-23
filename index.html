@@ -6,152 +6,253 @@
 <meta name="theme-color" content="#0d1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Arbitrage — Hachemi</title>
+<title>Arbitrage</title>
 <style>
-:root {
+:root{
   --bg:#0d1117;--s1:#161b22;--s2:#1f2937;--b:#30363d;
   --acc:#3b82f6;--grn:#10b981;--grn2:#065f46;--yel:#f59e0b;--yel2:#78350f;
   --red:#ef4444;--pur:#8b5cf6;--txt:#e6edf3;--mut:#7d8590;--r:10px;
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
 }
-:root[data-theme="light"] {
-  --bg:#f4f6fa;--s1:#ffffff;--s2:#f0f2f7;--b:#dde1ea;
-  --txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;
-}
-@media(prefers-color-scheme:light){
-  :root:not([data-theme="dark"]){
-    --bg:#f4f6fa;--s1:#ffffff;--s2:#f0f2f7;--b:#dde1ea;
-    --txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;
-  }
-}
+:root[data-theme="light"]{--bg:#f4f6fa;--s1:#fff;--s2:#f0f2f7;--b:#dde1ea;--txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f4f6fa;--s1:#fff;--s2:#f0f2f7;--b:#dde1ea;--txt:#111827;--mut:#6b7280;--grn2:#d1fae5;--yel2:#fef3c7;}}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',system-ui,sans-serif}
 body{padding-top:var(--st);padding-bottom:var(--sb)}
-.bar{position:sticky;top:var(--st);background:var(--s1);border-bottom:1px solid var(--b);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;z-index:100}
-.bar-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px}
-.pill{font-size:.6rem;font-weight:700;background:var(--acc);color:#fff;padding:2px 8px;border-radius:20px;text-transform:uppercase}
-nav{display:flex;gap:5px;flex-wrap:wrap}
-nav button{padding:6px 13px;border-radius:8px;border:1px solid var(--b);background:transparent;color:var(--mut);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+
+/* BAR */
+.bar{position:sticky;top:var(--st);background:var(--s1);border-bottom:1px solid var(--b);padding:11px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:100}
+.bar-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.bar-title span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:.6rem;font-weight:700;background:var(--acc);color:#fff;padding:2px 8px;border-radius:20px;text-transform:uppercase;flex-shrink:0}
+.bar-right{display:flex;align-items:center;gap:6px}
+.icon-btn{background:transparent;border:1px solid var(--b);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.95rem;color:var(--mut);-webkit-tap-highlight-color:transparent;transition:border-color .15s}
+.icon-btn:hover{border-color:var(--acc)}
+nav{display:flex;gap:5px;flex-wrap:wrap;width:100%}
+nav button{padding:6px 12px;border-radius:8px;border:1px solid var(--b);background:transparent;color:var(--mut);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
 nav button.on,nav button:hover{background:var(--acc);border-color:var(--acc);color:#fff}
-main{max-width:900px;margin:0 auto;padding:20px 14px}
+
+main{max-width:900px;margin:0 auto;padding:18px 14px}
 .page{display:none}.page.on{display:block}
 
-/* UPLOAD */
-.upload-label{display:block;border:2px dashed var(--b);border-radius:var(--r);background:var(--s1);padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:18px;-webkit-tap-highlight-color:transparent;user-select:none}
+/* UPLOAD ZONE */
+.upload-label{display:block;border:2px dashed var(--b);border-radius:var(--r);background:var(--s1);padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:14px;-webkit-tap-highlight-color:transparent;user-select:none}
 .upload-label:active{border-color:var(--acc);background:var(--s2)}
-.upload-label .ic{font-size:2.5rem;margin-bottom:10px}
-.upload-label p{color:var(--mut);font-size:.9rem;line-height:1.6}
-.upload-label p strong{color:var(--txt);font-size:1rem}
+.upload-label .ic{font-size:2.2rem;margin-bottom:8px}
+.upload-label p{color:var(--mut);font-size:.86rem;line-height:1.5}
+.upload-label p strong{color:var(--txt)}
 #file-in{display:none}
-#preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--b);margin-bottom:14px;display:none}
-.ocr-st{font-size:.82rem;color:var(--mut);margin-bottom:14px;min-height:22px;display:flex;align-items:center;gap:7px}
+
+/* PREVIEW THUMBNAIL + MODAL */
+.preview-thumb{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--b);cursor:pointer;display:none;margin-bottom:14px;transition:opacity .15s}
+.preview-thumb:hover{opacity:.8}
+.img-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:500;cursor:pointer}
+.img-modal.on{display:flex}
+.img-modal img{max-width:95vw;max-height:95vh;border-radius:8px;object-fit:contain}
+.img-modal .close-modal{position:absolute;top:16px;right:16px;color:#fff;font-size:1.8rem;cursor:pointer;line-height:1}
+
+.ocr-st{font-size:.8rem;color:var(--mut);margin-bottom:12px;min-height:20px;display:flex;align-items:center;gap:6px}
 
 /* CARD / FORM */
-.card{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:14px}
-.card-t{font-size:.72rem;font-weight:700;color:var(--mut);letter-spacing:.05em;margin-bottom:14px;text-transform:uppercase}
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+.card{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-t{font-size:.7rem;font-weight:700;color:var(--mut);letter-spacing:.05em;margin-bottom:12px;text-transform:uppercase}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 @media(max-width:520px){.fg{grid-template-columns:1fr}}
 .full{grid-column:1/-1}
-.f label{display:block;font-size:.72rem;font-weight:600;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
-.f input,.f select{width:100%;padding:10px 11px;background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.88rem;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.f label{display:block;font-size:.7rem;font-weight:600;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.f input,.f select{width:100%;padding:9px 10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.86rem;outline:none;transition:border-color .15s;-webkit-appearance:none}
 .f input:focus,.f select:focus{border-color:var(--acc)}
 
 /* BUTTONS */
-.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.86rem;font-weight:700;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:.84rem;font-weight:700;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{filter:brightness(1.1)}.btn-acc:disabled{opacity:.4;cursor:not-allowed}
 .btn-g{background:transparent;border:1px solid var(--b);color:var(--txt)}
 .btn-grn{background:var(--grn2);color:var(--grn);border:1px solid var(--grn)}
+.btn-red{background:transparent;border:1px solid var(--red);color:var(--red)}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin-bottom:20px}
-.stat{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:15px}
-.stat .lbl{font-size:.68rem;font-weight:600;color:var(--mut);margin-bottom:5px;text-transform:uppercase}
-.stat .val{font-size:1.55rem;font-weight:800;line-height:1}
-.stat .sub{font-size:.72rem;color:var(--mut);margin-top:4px}
+/* STATS CARDS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:14px}
+.stat .lbl{font-size:.65rem;font-weight:600;color:var(--mut);margin-bottom:4px;text-transform:uppercase}
+.stat .val{font-size:1.45rem;font-weight:800;line-height:1}
+.stat .sub{font-size:.7rem;color:var(--mut);margin-top:3px}
 .c-b{color:var(--acc)}.c-g{color:var(--grn)}.c-y{color:var(--yel)}.c-p{color:var(--pur)}
 
 /* TABLE */
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-size:.82rem}
-th{text-align:left;padding:8px 10px;background:var(--s2);color:var(--mut);font-size:.68rem;font-weight:700;border-bottom:1px solid var(--b);text-transform:uppercase}
-td{padding:10px;border-bottom:1px solid var(--b);vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{text-align:left;padding:8px 9px;background:var(--s2);color:var(--mut);font-size:.65rem;font-weight:700;border-bottom:1px solid var(--b);text-transform:uppercase;white-space:nowrap}
+td{padding:9px;border-bottom:1px solid var(--b);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--s2)}
 
 /* BADGES */
-.bdg{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.68rem;font-weight:700}
-.bdg-pnm{background:#1e3a5f;color:#60a5fa}.bdg-com{background:#2d1f52;color:#a78bfa}
-.bdg-ok{background:var(--grn2);color:var(--grn)}.bdg-w{background:var(--yel2);color:var(--yel)}
+.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700}
+.bdg-nat{background:#1e3a5f;color:#60a5fa}
+.bdg-reg{background:#2d1f52;color:#a78bfa}
+.bdg-dep{background:#1a3a2a;color:#6ee7b7}
+.bdg-ok{background:var(--grn2);color:var(--grn)}
+.bdg-w{background:var(--yel2);color:var(--yel)}
 
 /* MISC */
-.sh{display:flex;align-items:center;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--mut);margin-bottom:11px;text-transform:uppercase}
-.sh select{padding:5px 9px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--txt);font-size:.76rem;cursor:pointer;outline:none;text-transform:none;font-weight:400}
-.mr{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}
-.mr label{font-size:.78rem;font-weight:600;color:var(--mut)}
-.mr select{padding:8px 11px;background:var(--s1);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.86rem;outline:none;cursor:pointer}
-.tags{display:flex;flex-wrap:wrap;gap:7px}
-.tag{background:var(--s2);border:1px solid var(--b);border-radius:20px;padding:4px 11px;font-size:.76rem}
-.col-bar{display:flex;align-items:center;gap:9px;margin-bottom:9px}
-.col-bar .nm{flex:1;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
-.col-bar .bg{flex:2;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
+.sh{display:flex;align-items:center;justify-content:space-between;font-size:.7rem;font-weight:700;color:var(--mut);margin-bottom:10px;text-transform:uppercase}
+.sh select{padding:5px 8px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--txt);font-size:.74rem;cursor:pointer;outline:none;text-transform:none;font-weight:400}
+.mr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.mr label{font-size:.76rem;font-weight:600;color:var(--mut)}
+.mr select{padding:7px 10px;background:var(--s1);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.84rem;outline:none;cursor:pointer}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{background:var(--s2);border:1px solid var(--b);border-radius:20px;padding:3px 10px;font-size:.74rem}
+.col-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.col-bar .nm{flex:1;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.col-bar .bg{flex:2;height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
 .col-bar .fill{height:100%;border-radius:3px;background:var(--acc)}
-.col-bar .cnt{font-size:.74rem;color:var(--mut);min-width:28px;text-align:right}
-.empty{text-align:center;padding:38px 16px;color:var(--mut);font-size:.86rem}
-.empty .ic{font-size:1.9rem;margin-bottom:9px}
+.col-bar .cnt{font-size:.72rem;color:var(--mut);min-width:26px;text-align:right}
+.empty{text-align:center;padding:36px 16px;color:var(--mut);font-size:.84rem}
+.empty .ic{font-size:1.8rem;margin-bottom:8px}
 
-/* OVERLAY */
+/* OVERLAY LOADING */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200}
 .ov.on{display:flex}
-.ov-box{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:28px 36px;text-align:center;max-width:280px}
-.spin{width:28px;height:28px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;margin:0 auto 14px}
+.ov-box{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:26px 34px;text-align:center;max-width:260px}
+.spin{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;margin:0 auto 12px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.ov-box p{color:var(--mut);font-size:.84rem;line-height:1.5}
-.sp-sm{width:12px;height:12px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;flex-shrink:0}
+.ov-box p{color:var(--mut);font-size:.82rem;line-height:1.5}
+.sp-sm{width:11px;height:11px;border:2px solid var(--b);border-top-color:var(--acc);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;flex-shrink:0}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(18px + var(--sb));right:16px;left:16px;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:12px 16px;font-size:.84rem;z-index:999;animation:tu .22s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);text-align:center}
+.toast{position:fixed;bottom:calc(16px + var(--sb));right:14px;left:14px;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:11px 14px;font-size:.82rem;z-index:999;animation:tu .22s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);text-align:center}
 @keyframes tu{from{opacity:0;transform:translateY(8px)}}
 
-/* SETTINGS */
-.sc{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:14px}
-.sc h3{font-size:.88rem;font-weight:700;margin-bottom:13px}
-.del{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.9rem;padding:4px 6px;border-radius:4px;transition:color .15s}
+/* SUCCESS */
+.match-added{background:var(--grn2);border:1px solid var(--grn);border-radius:var(--r);padding:14px;margin-bottom:14px;display:none}
+.match-added .title{font-weight:700;color:var(--grn);margin-bottom:6px;font-size:.88rem}
+.match-added .detail{font-size:.8rem;color:var(--txt);line-height:1.8}
+
+/* VIREMENT */
+.virement-card{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.virement-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b)}
+.virement-item:last-child{border-bottom:none}
+.virement-item .vi-mo{font-size:.78rem;font-weight:700;color:var(--mut);min-width:80px}
+.virement-item .vi-amt{font-size:.95rem;font-weight:700;color:var(--grn);flex:1}
+.virement-item .vi-date{font-size:.74rem;color:var(--mut)}
+.virement-item .vi-st{font-size:.7rem;padding:2px 8px;border-radius:20px;font-weight:700}
+
+/* CHARTS */
+canvas{width:100%!important;display:block}
+.chart-tabs{display:flex;gap:6px;margin-bottom:12px}
+.chart-tab{padding:5px 14px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mut);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+.chart-tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+
+/* PIE */
+.pie-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pie-leg-item{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--mut)}
+.pie-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.del{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.88rem;padding:3px 5px;border-radius:4px;transition:color .15s}
 .del:hover{color:var(--red)}
 .tog{background:none;border:none;cursor:pointer;padding:0}
 
-/* SUCCESS MATCH */
-.match-added{background:var(--grn2);border:1px solid var(--grn);border-radius:var(--r);padding:16px;margin-bottom:16px;display:none}
-.match-added .title{font-weight:700;color:var(--grn);margin-bottom:8px;font-size:.9rem}
-.match-added .detail{font-size:.82rem;color:var(--txt);line-height:1.8}
+/* PROFIL SETUP */
+.setup-overlay{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.setup-box{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:28px;max-width:400px;width:100%}
+.setup-box h2{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+.setup-box p{font-size:.82rem;color:var(--mut);margin-bottom:20px}
 </style>
 </head>
 <body>
 
-<div class="ov" id="ov">
-  <div class="ov-box">
-    <div class="spin"></div>
-    <p id="ov-msg">Analyse de la convocation en cours…</p>
+<!-- SETUP PROFIL (premier lancement) -->
+<div class="setup-overlay" id="setup-overlay" style="display:none">
+  <div class="setup-box">
+    <h2>🏀 Bienvenue</h2>
+    <p>Configure ton profil pour personnaliser l'app.</p>
+    <div class="fg" style="margin-bottom:16px">
+      <div class="f full"><label>Prénom</label><input type="text" id="p-prenom" placeholder="ex: Sid Ahmed"></div>
+      <div class="f full"><label>Nom</label><input type="text" id="p-nom" placeholder="ex: HACHEMI"></div>
+      <div class="f">
+        <label>Niveau max (Masculin)</label>
+        <select id="p-niv-m">
+          <option value="PNM">Pré-National M</option>
+          <option value="NM3">Nationale 3 M</option>
+          <option value="R2M">Régionale 2 M</option>
+          <option value="R3M">Régionale 3 M</option>
+          <option value="D1M">D1 M</option>
+          <option value="D2M">D2 M</option>
+          <option value="D3M">D3 M</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Niveau max (Féminin)</label>
+        <select id="p-niv-f">
+          <option value="PNF">Pré-National F</option>
+          <option value="NF3">Nationale 3 F</option>
+          <option value="R2F">Régionale 2 F</option>
+          <option value="R3F">Régionale 3 F</option>
+          <option value="D1F">D1 F</option>
+          <option value="D2F">D2 F</option>
+          <option value="D3F">D3 F</option>
+        </select>
+      </div>
+      <div class="f full">
+        <label>Région / Ligue</label>
+        <select id="p-region">
+          <option value="AURA">Auvergne-Rhône-Alpes (AURA)</option>
+          <option value="OCC">Occitanie</option>
+          <option value="IDF">Île-de-France</option>
+          <option value="PACA">PACA</option>
+          <option value="NAQ">Nouvelle-Aquitaine</option>
+          <option value="BFC">Bourgogne-Franche-Comté</option>
+          <option value="GE">Grand-Est</option>
+          <option value="HDF">Hauts-de-France</option>
+          <option value="NOR">Normandie</option>
+          <option value="BRE">Bretagne</option>
+          <option value="CVL">Centre-Val de Loire</option>
+          <option value="PDL">Pays de la Loire</option>
+          <option value="ARA">Autre</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-acc" style="width:100%" onclick="saveProfile()">C'est parti 🚀</button>
   </div>
 </div>
 
+<!-- LOADING OVERLAY -->
+<div class="ov" id="ov">
+  <div class="ov-box">
+    <div class="spin"></div>
+    <p id="ov-msg">Lecture de la convocation…</p>
+  </div>
+</div>
+
+<!-- IMAGE MODAL -->
+<div class="img-modal" id="img-modal" onclick="closeImgModal()">
+  <span class="close-modal">✕</span>
+  <img id="img-modal-src" alt="">
+</div>
+
+<!-- TOPBAR -->
 <div class="bar">
-  <div class="bar-title">🏀 Arbitrage <span class="pill">AURA</span></div>
-  <button id="theme-btn" onclick="toggleTheme()" style="background:transparent;border:1px solid var(--b);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:1rem;color:var(--mut);-webkit-tap-highlight-color:transparent" title="Thème">🌙</button>
+  <div class="bar-title">
+    🏀 <span id="bar-name">Arbitrage</span> <span class="pill" id="bar-region">AURA</span>
+  </div>
+  <div class="bar-right">
+    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Thème">🌙</button>
+  </div>
   <nav>
     <button class="on" onclick="go('saisie',this)">➕ Saisie</button>
     <button onclick="go('dash',this)">📊 Bilan</button>
     <button onclick="go('matchs',this)">📋 Matchs</button>
     <button onclick="go('stats',this)">📈 Stats</button>
+    <button onclick="go('virements',this)">💳 Virements</button>
     <button onclick="go('cfg',this)">⚙️</button>
   </nav>
 </div>
 
 <main>
 
-<!-- SAISIE -->
+<!-- ══ SAISIE ══ -->
 <div class="page on" id="page-saisie">
-
   <div class="match-added" id="match-added">
     <div class="title">✅ Match enregistré automatiquement !</div>
     <div class="detail" id="match-added-detail"></div>
@@ -163,10 +264,12 @@ tbody tr:hover{background:var(--s2)}
     <p>Photo ou galerie → lecture automatique</p>
   </label>
   <input type="file" id="file-in" accept="image/*">
-  <img id="preview" alt="">
+
+  <!-- Vignette cliquable -->
+  <img class="preview-thumb" id="preview-thumb" alt="" onclick="openImgModal(this.src)">
   <div class="ocr-st" id="ocr-st"></div>
 
-  <div class="card" id="form-card">
+  <div class="card">
     <div class="card-t">Saisie manuelle / correction</div>
     <div class="fg">
       <div class="f"><label>Date</label><input type="date" id="f-date"></div>
@@ -182,30 +285,20 @@ tbody tr:hover{background:var(--s2)}
             <option value="NF3">Nationale 3 F</option>
           </optgroup>
           <optgroup label="🥈 Régional">
-            <option value="R2M">Régionale 2 M</option>
-            <option value="R2F">Régionale 2 F</option>
-            <option value="R3M">Régionale 3 M</option>
-            <option value="R3F">Régionale 3 F</option>
+            <option value="R2M">Régionale 2 M</option><option value="R2F">Régionale 2 F</option>
+            <option value="R3M">Régionale 3 M</option><option value="R3F">Régionale 3 F</option>
           </optgroup>
           <optgroup label="🥉 Départemental">
-            <option value="D1M">D1 M</option>
-            <option value="D1F">D1 F</option>
-            <option value="D2M">D2 M</option>
-            <option value="D2F">D2 F</option>
-            <option value="D3M">D3 M</option>
-            <option value="D3F">D3 F</option>
+            <option value="D1M">D1 M</option><option value="D1F">D1 F</option>
+            <option value="D2M">D2 M</option><option value="D2F">D2 F</option>
+            <option value="D3M">D3 M</option><option value="D3F">D3 F</option>
           </optgroup>
           <optgroup label="👦 Jeunes">
-            <option value="U21M">U21 M</option>
-            <option value="U21F">U21 F</option>
-            <option value="U17M">U17 M</option>
-            <option value="U17F">U17 F</option>
-            <option value="U15M">U15 M</option>
-            <option value="U15F">U15 F</option>
-            <option value="U13M">U13 M</option>
-            <option value="U13F">U13 F</option>
-            <option value="U11M">U11 M</option>
-            <option value="U11F">U11 F</option>
+            <option value="U21M">U21 M</option><option value="U21F">U21 F</option>
+            <option value="U17M">U17 M</option><option value="U17F">U17 F</option>
+            <option value="U15M">U15 M</option><option value="U15F">U15 F</option>
+            <option value="U13M">U13 M</option><option value="U13F">U13 F</option>
+            <option value="U11M">U11 M</option><option value="U11F">U11 F</option>
           </optgroup>
           <option value="Autre">Autre</option>
         </select>
@@ -217,6 +310,7 @@ tbody tr:hover{background:var(--s2)}
       <div class="f"><label>Km aller</label><input type="number" id="f-km" min="0" step="1"></div>
       <div class="f"><label>Indemnité (€)</label><input type="number" id="f-indem" min="0" step="0.10"></div>
       <div class="f full"><label>Collègue arbitre</label><input type="text" id="f-col"></div>
+      <div class="f full"><label>Contact correspondant club dom.</label><input type="text" id="f-contact" placeholder="ex: FRADEL Mathieu — 0648647379"></div>
       <div class="f">
         <label>Remboursé par</label>
         <select id="f-pay">
@@ -241,7 +335,7 @@ tbody tr:hover{background:var(--s2)}
   </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ══ BILAN MENSUEL ══ -->
 <div class="page" id="page-dash">
   <div class="mr">
     <label>Mois :</label><select id="d-mo"></select>
@@ -253,20 +347,18 @@ tbody tr:hover{background:var(--s2)}
   <div style="margin-top:6px"><button class="btn btn-grn" onclick="exportCSV()">⬇ Export CSV</button></div>
 </div>
 
-<!-- MATCHS -->
+<!-- ══ MATCHS ══ -->
 <div class="page" id="page-matchs">
   <div class="sh">
     <span>Matchs</span>
-    <select id="m-fil" onchange="renderMatchs()">
-      <option value="">Tous</option>
-    </select>
+    <select id="m-fil" onchange="renderMatchs()"><option value="">Tous</option></select>
   </div>
   <div class="tw">
     <table>
       <thead><tr>
-        <th>Date</th><th>Compét.</th><th>Domicile</th><th>Visiteur</th>
+        <th>Date</th><th>Compét.</th><th>Domicile</th><th>Ext.</th>
         <th>Km</th><th>€km</th><th>Ind.</th><th>Total</th>
-        <th>Collègue</th><th>Payeur</th><th>Statut</th><th></th>
+        <th>Collègue</th><th>Contact</th><th>Payeur</th><th>Statut</th><th></th>
       </tr></thead>
       <tbody id="m-body"></tbody>
     </table>
@@ -274,197 +366,268 @@ tbody tr:hover{background:var(--s2)}
   <div class="empty" id="m-empty" style="display:none"><div class="ic">🏀</div><p>Aucun match</p></div>
 </div>
 
-<!-- STATS -->
+<!-- ══ STATS ══ -->
 <div class="page" id="page-stats">
   <div class="mr"><label>Saison :</label><select id="s-yr"></select></div>
   <div class="stats" id="s-stats"></div>
+
+  <div class="card">
+    <div class="card-t">Évolution des revenus</div>
+    <div class="chart-tabs">
+      <button class="chart-tab on" onclick="setChartTab('mensuel',this)">Mensuel</button>
+      <button class="chart-tab" onclick="setChartTab('annuel',this)">Annuel</button>
+    </div>
+    <canvas id="chart-bar" height="150"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-t">Répartition par compétition</div>
+    <canvas id="chart-pie" height="180"></canvas>
+    <div class="pie-legend" id="pie-legend"></div>
+  </div>
+
   <div class="card"><div class="card-t">Clubs (saison)</div><div id="s-clubs"></div></div>
   <div class="card"><div class="card-t">Collègues (saison)</div><div id="s-cols"></div></div>
-  <div class="card"><div class="card-t">Évolution mensuelle</div><canvas id="chart" height="140"></canvas></div>
 </div>
 
-<!-- CONFIG -->
+<!-- ══ VIREMENTS ══ -->
+<div class="page" id="page-virements">
+  <div class="mr"><label>Année :</label><select id="v-yr"></select></div>
+
+  <div class="card">
+    <div class="card-t">Virements reçus de la Ligue</div>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:14px">Enregistre chaque virement mensuel quand il arrive.</p>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="f"><label>Mois</label><select id="v-mo"></select></div>
+      <div class="f"><label>Montant reçu (€)</label><input type="number" id="v-amt" placeholder="ex: 168.60" step="0.01" min="0"></div>
+      <div class="f"><label>Date de réception</label><input type="date" id="v-date"></div>
+      <div class="f"><label>Notes</label><input type="text" id="v-notes" placeholder="Virement janv…"></div>
+    </div>
+    <button class="btn btn-acc" onclick="addVirement()">➕ Enregistrer le virement</button>
+  </div>
+
+  <div class="stats" id="v-stats"></div>
+  <div class="virement-card" id="v-list"></div>
+</div>
+
+<!-- ══ CONFIG ══ -->
 <div class="page" id="page-cfg">
-  <div class="sc">
-    <h3>💰 Taux kilométrique</h3>
-    <div class="fg" style="max-width:260px">
-      <div class="f full"><label>€ / km aller</label><input type="number" id="c-km" step="0.01" min="0" placeholder="0.25"></div>
+  <div class="card">
+    <div class="card-t">👤 Mon profil</div>
+    <div class="fg">
+      <div class="f"><label>Prénom</label><input type="text" id="c-prenom"></div>
+      <div class="f"><label>Nom</label><input type="text" id="c-nom"></div>
+      <div class="f">
+        <label>Niveau max (M)</label>
+        <select id="c-niv-m">
+          <option value="PNM">Pré-National M</option><option value="NM3">Nationale 3 M</option>
+          <option value="R2M">R2 M</option><option value="R3M">R3 M</option><option value="D1M">D1 M</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Niveau max (F)</label>
+        <select id="c-niv-f">
+          <option value="PNF">Pré-National F</option><option value="NF3">Nationale 3 F</option>
+          <option value="R2F">R2 F</option><option value="R3F">R3 F</option><option value="D1F">D1 F</option>
+        </select>
+      </div>
+      <div class="f full">
+        <label>Région / Ligue</label>
+        <select id="c-region">
+          <option value="AURA">Auvergne-Rhône-Alpes (AURA)</option>
+          <option value="OCC">Occitanie</option><option value="IDF">Île-de-France</option>
+          <option value="PACA">PACA</option><option value="NAQ">Nouvelle-Aquitaine</option>
+          <option value="BFC">Bourgogne-Franche-Comté</option><option value="GE">Grand-Est</option>
+          <option value="HDF">Hauts-de-France</option><option value="NOR">Normandie</option>
+          <option value="BRE">Bretagne</option><option value="ARA">Autre</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-acc" onclick="saveProfileCfg()">Enregistrer</button>
+  </div>
+
+  <div class="card">
+    <div class="card-t">💰 Taux kilométrique (aller)</div>
+    <div class="fg" style="max-width:240px">
+      <div class="f full"><label>€ / km</label><input type="number" id="c-km" step="0.01" min="0" placeholder="0.80"></div>
     </div>
     <button class="btn btn-acc" onclick="saveCfg()">Enregistrer</button>
   </div>
-  <div class="sc">
-    <h3>📋 Indemnités par défaut par compétition</h3>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Pré-rempli si OCR ne trouve pas le montant.</p>
+
+  <div class="card">
+    <div class="card-t">📋 Indemnités par défaut</div>
+    <p style="font-size:.76rem;color:var(--mut);margin-bottom:12px">Pré-rempli si OCR ne trouve pas le montant.</p>
     <div class="fg" id="c-rates"></div>
     <button class="btn btn-acc" onclick="saveRates()">Enregistrer</button>
   </div>
-  <div class="sc">
-    <h3>🗑 Données</h3>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:13px">Données stockées localement sur cet appareil.</p>
-    <button class="btn btn-g" style="border-color:var(--red);color:var(--red)" onclick="clearAll()">Effacer toutes les données</button>
+
+  <div class="card">
+    <div class="card-t">🗑 Données</div>
+    <p style="font-size:.76rem;color:var(--mut);margin-bottom:12px">Stockées localement sur cet appareil.</p>
+    <button class="btn btn-red" onclick="clearAll()">Effacer toutes les données</button>
   </div>
 </div>
 
 </main>
-
 <script>
-const OR_KEY = ["sk-or-v1-fb2133c6cec2e24fa49f1fb3", "8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
-const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OR_KEY=["sk-or-v1-fb2133c6cec2e24fa49f1fb3","8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
+const OR_URL="https://openrouter.ai/api/v1/chat/completions";
+const COMPS=['PNM','PNF','NM3','NF3','R2M','R2F','R3M','R3F','D1M','D1F','D2M','D2F','D3M','D3F','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','U11M','U11F','Autre'];
+const DEF_RATES={PNM:45,PNF:45,NM3:43,NF3:43,R2M:43,R2F:43,R3M:43,R3F:43,D1M:41,D1F:41,D2M:41,D2F:41,D3M:41,D3F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:34};
+const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
+const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
 
-const COMPS = ['PNM','PNF','NM3','NF3','R2M','R2F','R3M','R3F','D1M','D1F','D2M','D2F','D3M','D3F','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','U11M','U11F','Autre'];
-const DEF_RATES = {PNM:45,PNF:45,NM3:43,NF3:43,R2M:43,R2F:43,R3M:43,R3F:43,D1M:41,D1F:41,D2M:41,D2F:41,D3M:41,D3F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:34}; // Barème AURA 2026-2027
-const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const SK = 'arb_matchs', CK = 'arb_cfg';
+let matchs=[],cfg={kmRate:0.80,rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[];
+let curChartTab='mensuel';
 
-let matchs = [], cfg = {kmRate:0.80,rates:{...DEF_RATES}};
-
+// ── INIT ──
 function init(){
-  try{ matchs=JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){ matchs=[]; }
-  try{ const c=JSON.parse(localStorage.getItem(CK)||'{}'); cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}}; if(!c.kmRate) cfg.kmRate=0.80; }catch(e){}
-  buildSelectors(); buildRates();
-  renderDash(); renderMatchs(); renderStats(); populateFilter();
+  try{matchs=JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){matchs=[];}
+  try{const c=JSON.parse(localStorage.getItem(CK)||'{}');cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}};}catch(e){}
+  try{profil={...profil,...JSON.parse(localStorage.getItem(PK)||'{}')};}catch(e){}
+  try{virements=JSON.parse(localStorage.getItem(VK)||'[]');}catch(e){virements=[];}
+
+  if(!profil.prenom&&!profil.nom){
+    document.getElementById('setup-overlay').style.display='flex';
+  }
+
+  updateBarTitle();
+  buildSelectors();buildRates();buildVirementMoSelect();
+  renderDash();renderMatchs();renderStats();renderVirements();populateFilter();
 
   document.getElementById('file-in').addEventListener('change',function(){
-    if(this.files&&this.files[0]) handleFile(this.files[0]);
+    if(this.files&&this.files[0])handleFile(this.files[0]);
     this.value='';
   });
   document.getElementById('f-comp').addEventListener('change',function(){
     if(this.value&&!document.getElementById('f-indem').value)
       document.getElementById('f-indem').value=cfg.rates[this.value]||DEF_RATES[this.value]||'';
   });
+  initTheme();
 }
 
+// ── PROFIL ──
+function saveProfile(){
+  profil.prenom=document.getElementById('p-prenom').value.trim();
+  profil.nom=document.getElementById('p-nom').value.trim();
+  profil.nivM=document.getElementById('p-niv-m').value;
+  profil.nivF=document.getElementById('p-niv-f').value;
+  profil.region=document.getElementById('p-region').value;
+  localStorage.setItem(PK,JSON.stringify(profil));
+  document.getElementById('setup-overlay').style.display='none';
+  updateBarTitle();toast('✅ Profil sauvegardé');
+}
+function saveProfileCfg(){
+  profil.prenom=document.getElementById('c-prenom').value.trim();
+  profil.nom=document.getElementById('c-nom').value.trim();
+  profil.nivM=document.getElementById('c-niv-m').value;
+  profil.nivF=document.getElementById('c-niv-f').value;
+  profil.region=document.getElementById('c-region').value;
+  localStorage.setItem(PK,JSON.stringify(profil));
+  updateBarTitle();toast('✅ Profil mis à jour');
+}
+function updateBarTitle(){
+  const name=profil.prenom||(profil.nom?profil.nom:'Arbitrage');
+  document.getElementById('bar-name').textContent=name;
+  document.getElementById('bar-region').textContent=profil.region||'AURA';
+  document.title=`Arbitrage — ${profil.prenom||''} ${profil.nom||''}`.trim()||'Arbitrage';
+}
+
+// ── NAV ──
 function go(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
   document.getElementById('page-'+name).classList.add('on');
-  if(btn) btn.classList.add('on');
-  if(name==='dash') renderDash();
-  if(name==='matchs') renderMatchs();
-  if(name==='stats') renderStats();
-  if(name==='cfg') loadCfg();
+  if(btn)btn.classList.add('on');
+  if(name==='dash')renderDash();
+  if(name==='matchs')renderMatchs();
+  if(name==='stats')renderStats();
+  if(name==='virements')renderVirements();
+  if(name==='cfg')loadCfgUI();
 }
 
-// ── OCR OPENROUTER ──────────────────────────────────────────
+// ── IMAGE MODAL ──
+function openImgModal(src){
+  document.getElementById('img-modal-src').src=src;
+  document.getElementById('img-modal').classList.add('on');
+}
+function closeImgModal(){document.getElementById('img-modal').classList.remove('on');}
+
+// ── OCR ──
 async function handleFile(file){
-  const prev=document.getElementById('preview');
-  prev.src=URL.createObjectURL(file); prev.style.display='block';
-  setSt('<span class="sp-sm"></span> Lecture de la convocation…');
+  const thumb=document.getElementById('preview-thumb');
+  const url=URL.createObjectURL(file);
+  thumb.src=url;thumb.style.display='block';
+  setSt('<span class="sp-sm"></span> Lecture…');
   document.getElementById('match-added').style.display='none';
   document.getElementById('ov').classList.add('on');
-  document.getElementById('ov-msg').textContent='Lecture de la convocation…';
 
   try{
     const b64=await toB64(file);
     const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
+    const prompt=`This is a French basketball referee assignment letter. Read all text carefully.
+Output ONLY a raw JSON object, no markdown, no explanation:
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"collegue":"co-referee full name (not HACHEMI)","contact_dom":"home club contact name and phone","payeur":"Ligue or Comite or Associations"}
+Use null for missing. km_aller and indemnite are from HACHEMI's row.`;
 
-    const prompt = `This is a French basketball referee assignment letter. Read all text in the image carefully.
-Output ONLY a raw JSON object (no markdown, no explanation):
-{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club name","club_ext":"away club name","salle_ville":"venue and city","km_aller":14,"indemnite":56.20,"collegue":"co-referee full name","payeur":"Ligue or Comite or Associations"}
-Use null for missing fields. For km_aller and indemnite, find the row with HACHEMI in it.`;
+    const body={model:"openrouter/free",messages:[{role:"user",content:[
+      {type:"image_url",image_url:{url:`data:${mime};base64,${b64}`}},
+      {type:"text",text:prompt}
+    ]}]};
 
-    const body = {
-      model: "openrouter/free",
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } },
-          { type: "text", text: prompt }
-        ]
-      }]
-    };
-
-    const resp = await fetch(OR_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OR_KEY}`, 'HTTP-Referer': 'https://ecole-app.github.io', 'X-Title': 'Arbitrage AURA' },
-      body: JSON.stringify(body)
-    });
-    const data = await resp.json();
-    console.log('OpenRouter response:', JSON.stringify(data).slice(0, 500));
-    if(data.error) { setSt('❌ API: ' + (data.error.message||JSON.stringify(data.error))); document.getElementById('ov').classList.remove('on'); return; }
-    const txt = data?.choices?.[0]?.message?.content || '';
-    console.log('OCR text:', txt);
-    let d={};
-    try{ d=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){ console.error('JSON parse fail',txt); setSt('⚠️ Réponse inattendue — ' + txt.slice(0,80)); document.getElementById('ov').classList.remove('on'); return; }
-
+    const resp=await fetch(OR_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify(body)});
+    const data=await resp.json();
     document.getElementById('ov').classList.remove('on');
+    if(data.error){setSt('❌ API: '+(data.error.message||JSON.stringify(data.error)));return;}
+    const txt=data?.choices?.[0]?.message?.content||'';
+    let d={};
+    try{d=JSON.parse(txt.replace(/```json|```/g,'').trim());}catch(e){setSt('⚠️ Réponse inattendue — '+txt.slice(0,80));return;}
 
-    // Remplir le formulaire
-    if(d.date) document.getElementById('f-date').value=d.date;
-    if(d.heure) document.getElementById('f-heure').value=d.heure;
-    if(d.competition) document.getElementById('f-comp').value=d.competition;
-    if(d.num_rencontre) document.getElementById('f-nr').value=d.num_rencontre;
-    if(d.club_dom) document.getElementById('f-dom').value=d.club_dom;
-    if(d.club_ext) document.getElementById('f-ext').value=d.club_ext;
-    if(d.salle_ville) document.getElementById('f-lieu').value=d.salle_ville;
-    if(d.km_aller!=null) document.getElementById('f-km').value=d.km_aller;
-    if(d.indemnite!=null) document.getElementById('f-indem').value=d.indemnite;
-    if(d.collegue) document.getElementById('f-col').value=d.collegue;
-    if(d.payeur) document.getElementById('f-pay').value=d.payeur;
+    if(d.date)document.getElementById('f-date').value=d.date;
+    if(d.heure)document.getElementById('f-heure').value=d.heure;
+    if(d.competition)document.getElementById('f-comp').value=d.competition;
+    if(d.num_rencontre)document.getElementById('f-nr').value=d.num_rencontre;
+    if(d.club_dom)document.getElementById('f-dom').value=d.club_dom;
+    if(d.club_ext)document.getElementById('f-ext').value=d.club_ext;
+    if(d.salle_ville)document.getElementById('f-lieu').value=d.salle_ville;
+    if(d.km_aller!=null)document.getElementById('f-km').value=d.km_aller;
+    if(d.indemnite!=null)document.getElementById('f-indem').value=d.indemnite;
+    if(d.collegue)document.getElementById('f-col').value=d.collegue;
+    if(d.contact_dom)document.getElementById('f-contact').value=d.contact_dom;
+    if(d.payeur)document.getElementById('f-pay').value=d.payeur;
 
-    // Auto-save si on a le minimum
-    if(d.date && d.club_dom){
-      autoSave(d);
-    } else {
-      setSt('⚠️ Infos incomplètes — vérifie et enregistre manuellement');
-    }
-
+    if(d.date&&d.club_dom)autoSave(d,url);
+    else setSt('⚠️ Infos incomplètes — vérifie et enregistre');
   }catch(e){
     document.getElementById('ov').classList.remove('on');
-    console.error(e);
-    setSt('⚠️ Analyse impossible — saisie manuelle');
+    console.error(e);setSt('⚠️ Analyse impossible — saisie manuelle');
   }
 }
 
-function autoSave(d){
+function autoSave(d,imgUrl){
   const km=parseFloat(d.km_aller)||0;
   const indem=parseFloat(d.indemnite)||0;
   const kmEur=Math.round(km*cfg.kmRate*100)/100;
   const m={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
-    date:d.date, heure:d.heure||'',
-    competition:d.competition||'', rencontre:d.num_rencontre||'',
-    club_dom:d.club_dom||'', club_ext:d.club_ext||'',
-    lieu:d.salle_ville||'',
-    km, kmEur, indem,
-    total:Math.round((kmEur+indem)*100)/100,
-    collegue:d.collegue||'', payeur:d.payeur||'Ligue',
-    statut:'attente', notes:'', ts:Date.now()
+    date:d.date,heure:d.heure||'',competition:d.competition||'',rencontre:d.num_rencontre||'',
+    club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
+    km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
+    collegue:d.collegue||'',contact:d.contact_dom||'',payeur:d.payeur||'Ligue',
+    statut:'attente',notes:'',imgUrl:imgUrl||'',ts:Date.now()
   };
-  matchs.unshift(m); save();
-
-  // Afficher le résumé
+  matchs.unshift(m);save();
   const det=document.getElementById('match-added-detail');
-  det.innerHTML=`
-    📅 ${fd(m.date)} ${m.heure?'à '+m.heure:''}<br>
-    🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>
-    ${m.competition?'🏆 '+m.competition+'<br>':''}
-    📍 ${m.lieu||'—'}<br>
-    🚗 ${m.km} km aller → ${m.kmEur.toFixed(2)} €<br>
-    💰 Indemnité : ${m.indem.toFixed(2)} € → <strong>Total : ${m.total.toFixed(2)} €</strong><br>
-    👤 Collègue : ${m.collegue||'—'}<br>
-    🏦 Payeur : ${m.payeur}
-  `;
+  det.innerHTML=`📅 ${fd(m.date)}${m.heure?' à '+m.heure:''}<br>🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>${m.competition?'🏆 '+m.competition+'<br>':''}📍 ${m.lieu||'—'}<br>🚗 ${m.km} km × ${cfg.kmRate}€ = ${m.kmEur.toFixed(2)} €<br>💰 Indemnité : ${m.indem.toFixed(2)} € → <strong>Total : ${m.total.toFixed(2)} €</strong><br>👤 Collègue : ${m.collegue||'—'}`;
   document.getElementById('match-added').style.display='block';
-  setSt('✅ Enregistré automatiquement !');
-  // Reset preview après 3s
-  setTimeout(()=>{
-    document.getElementById('preview').style.display='none';
-  },3000);
+  setSt('✅ Enregistré !');
 }
 
-function toB64(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=ev=>res(ev.target.result.split(',')[1]);
-    r.onerror=rej;
-    r.readAsDataURL(file);
-  });
-}
+function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=ev=>res(ev.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+function setSt(html){document.getElementById('ocr-st').innerHTML=html;}
 
-function setSt(html){ document.getElementById('ocr-st').innerHTML=html; }
-
-// ── SAVE MATCH ──────────────────────────────────────────
+// ── SAVE MATCH ──
 function saveMatch(){
   const date=document.getElementById('f-date').value;
   const dom=document.getElementById('f-dom').value.trim();
@@ -474,62 +637,80 @@ function saveMatch(){
   const kmEur=Math.round(km*cfg.kmRate*100)/100;
   const m={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
-    date, heure:document.getElementById('f-heure').value,
+    date,heure:document.getElementById('f-heure').value,
     competition:document.getElementById('f-comp').value,
     rencontre:document.getElementById('f-nr').value.trim(),
-    club_dom:dom, club_ext:document.getElementById('f-ext').value.trim(),
+    club_dom:dom,club_ext:document.getElementById('f-ext').value.trim(),
     lieu:document.getElementById('f-lieu').value.trim(),
     km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
     collegue:document.getElementById('f-col').value.trim(),
+    contact:document.getElementById('f-contact').value.trim(),
     payeur:document.getElementById('f-pay').value,
     statut:document.getElementById('f-st').value,
     notes:document.getElementById('f-notes').value.trim(),
-    ts:Date.now()
+    imgUrl:'',ts:Date.now()
   };
-  matchs.unshift(m); save(); resetForm(); toast('✅ Match enregistré !');
+  matchs.unshift(m);save();resetForm();toast('✅ Match enregistré !');
 }
 
 function resetForm(){
-  ['f-date','f-heure','f-nr','f-dom','f-ext','f-lieu','f-km','f-indem','f-col','f-notes']
+  ['f-date','f-heure','f-nr','f-dom','f-ext','f-lieu','f-km','f-indem','f-col','f-contact','f-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-comp').value='';
   document.getElementById('f-pay').value='Ligue';
   document.getElementById('f-st').value='attente';
-  document.getElementById('preview').style.display='none';
+  document.getElementById('preview-thumb').style.display='none';
   document.getElementById('ocr-st').innerHTML='';
   document.getElementById('match-added').style.display='none';
 }
 
 function save(){
   localStorage.setItem(SK,JSON.stringify(matchs));
-  renderDash(); renderMatchs(); renderStats(); populateFilter();
+  renderDash();renderMatchs();renderStats();populateFilter();
 }
 
-// ── DASHBOARD ──────────────────────────────────────────
+// ── SELECTORS ──
 function buildSelectors(){
   const now=new Date();
-  const dMo=document.getElementById('d-mo'), dYr=document.getElementById('d-yr'), sYr=document.getElementById('s-yr');
+  const dMo=document.getElementById('d-mo'),dYr=document.getElementById('d-yr'),sYr=document.getElementById('s-yr'),vYr=document.getElementById('v-yr');
   MONTHS.forEach((m,i)=>{
     const o=document.createElement('option');
-    o.value=String(i+1).padStart(2,'0'); o.textContent=m;
-    if(i===now.getMonth()) o.selected=true;
+    o.value=String(i+1).padStart(2,'0');o.textContent=m;
+    if(i===now.getMonth())o.selected=true;
     dMo.appendChild(o);
   });
   dMo.addEventListener('change',renderDash);
   for(let y=now.getFullYear();y>=2023;y--){
-    const o=document.createElement('option'); o.value=y; o.textContent=y;
-    if(y===now.getFullYear()) o.selected=true;
-    dYr.appendChild(o.cloneNode(true));
-    const s=document.createElement('option'); s.value=y; s.textContent=`${y-1}-${String(y).slice(2)}`;
-    if(y===now.getFullYear()) s.selected=true;
-    sYr.appendChild(s);
+    [dYr,sYr,vYr].forEach(sel=>{
+      if(!sel)return;
+      const o=document.createElement('option');
+      o.value=y;
+      o.textContent=sel===sYr?`${y-1}-${String(y).slice(2)}`:y;
+      if(y===now.getFullYear())o.selected=true;
+      sel.appendChild(o);
+    });
   }
   dYr.addEventListener('change',renderDash);
   sYr.addEventListener('change',renderStats);
+  vYr.addEventListener('change',renderVirements);
 }
 
+function buildVirementMoSelect(){
+  const sel=document.getElementById('v-mo');
+  const now=new Date();
+  MONTHS.forEach((m,i)=>{
+    const o=document.createElement('option');
+    o.value=String(i+1).padStart(2,'0');o.textContent=m;
+    if(i===now.getMonth())o.selected=true;
+    sel.appendChild(o);
+  });
+  // Date par défaut = aujourd'hui
+  document.getElementById('v-date').value=now.toISOString().slice(0,10);
+}
+
+// ── DASHBOARD ──
 function getMonthMatchs(){
-  const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
+  const mo=document.getElementById('d-mo').value,yr=String(document.getElementById('d-yr').value);
   return matchs.filter(m=>m.date&&m.date.split('-')[0]===yr&&m.date.split('-')[1]===mo);
 }
 
@@ -547,13 +728,13 @@ function renderDash(){
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
     <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
-  document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.82rem">Aucun match ce mois</span>';
+  document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.8rem">Aucun match ce mois</span>';
   const cm={};list.forEach(m=>{if(m.collegue)cm[m.collegue]=(cm[m.collegue]||0)+1;});
   const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]),mx=cv[0]?.[1]||1;
-  document.getElementById('d-cols').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">—</span>';
+  document.getElementById('d-cols').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.8rem">—</span>';
 }
 
-// ── MATCHS TABLE ──────────────────────────────────────────
+// ── MATCHS TABLE ──
 function populateFilter(){
   const sel=document.getElementById('m-fil');
   const months=[...new Set(matchs.map(m=>m.date?.slice(0,7)).filter(Boolean))].sort().reverse();
@@ -562,10 +743,16 @@ function populateFilter(){
   months.forEach(mo=>{
     const[y,m]=mo.split('-');
     const o=document.createElement('option');
-    o.value=mo; o.textContent=`${MONTHS[parseInt(m)-1]} ${y}`;
-    if(mo===cur) o.selected=true;
+    o.value=mo;o.textContent=`${MONTHS[parseInt(m)-1]} ${y}`;
+    if(mo===cur)o.selected=true;
     sel.appendChild(o);
   });
+}
+
+function compBadge(c){
+  if(!c)return'—';
+  const cls=(['PNM','PNF','NM3','NF3'].includes(c)?'bdg-nat':['R2M','R2F','R3M','R3F'].includes(c)?'bdg-reg':'bdg-dep');
+  return`<span class="bdg ${cls}">${c}</span>`;
 }
 
 function renderMatchs(){
@@ -574,38 +761,41 @@ function renderMatchs(){
   const tb=document.getElementById('m-body'),em=document.getElementById('m-empty');
   if(!list.length){tb.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
-  const isPnm=c=>c==='PNM'||c==='NM3';
   tb.innerHTML=list.map(m=>`<tr>
     <td>${fd(m.date)}</td>
-    <td>${m.competition?`<span class="bdg ${isPnm(m.competition)?'bdg-pnm':'bdg-com'}">${m.competition}</span>`:'—'}</td>
-    <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_dom||'—'}</td>
-    <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_ext||'—'}</td>
-    <td>${m.km||0}</td><td>${(m.kmEur||0).toFixed(2)}€</td>
-    <td>${(m.indem||0).toFixed(2)}€</td><td><strong>${(m.total||0).toFixed(2)}€</strong></td>
+    <td>${compBadge(m.competition)}</td>
+    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_dom||'—'}</td>
+    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_ext||'—'}</td>
+    <td>${m.km||0}</td>
+    <td>${(m.kmEur||0).toFixed(2)}€</td>
+    <td>${(m.indem||0).toFixed(2)}€</td>
+    <td><strong>${(m.total||0).toFixed(2)}€</strong></td>
     <td>${m.collegue||'—'}</td>
+    <td style="font-size:.72rem;color:var(--mut)">${m.contact||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.payeur||'—'}</td>
     <td><button class="tog" onclick="toggleSt('${m.id}','${m.statut}')">${m.statut==='paye'?'<span class="bdg bdg-ok">Payé ✓</span>':'<span class="bdg bdg-w">Attente</span>'}</button></td>
     <td><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
   </tr>`).join('');
 }
 
-function toggleSt(id,cur){
-  const m=matchs.find(x=>x.id===id);if(!m)return;
-  m.statut=cur==='paye'?'attente':'paye'; save();
-}
-function delMatch(id){
-  if(!confirm('Supprimer ?'))return;
-  matchs=matchs.filter(m=>m.id!==id); save();
-}
+function toggleSt(id,cur){const m=matchs.find(x=>x.id===id);if(!m)return;m.statut=cur==='paye'?'attente':'paye';save();}
+function delMatch(id){if(!confirm('Supprimer ?'))return;matchs=matchs.filter(m=>m.id!==id);save();}
 
-// ── STATS SAISON ──────────────────────────────────────────
+// ── STATS ──
 function getSeasonMatchs(){
-  const yr=parseInt(document.getElementById('s-yr').value||new Date().getFullYear());
+  const yr=parseInt(document.getElementById('s-yr')?.value||new Date().getFullYear());
   return matchs.filter(m=>{
     if(!m.date)return false;
     const[y,mo]=m.date.split('-');const yy=parseInt(y),mm=parseInt(mo);
     return(yy===yr-1&&mm>=9)||(yy===yr&&mm<=8);
   });
+}
+
+function setChartTab(tab,btn){
+  curChartTab=tab;
+  document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  drawBarChart(getSeasonMatchs());
 }
 
 function renderStats(){
@@ -615,39 +805,59 @@ function renderStats(){
   const kmE=Math.round(km*cfg.kmRate*100)/100;
   const tot=Math.round((ind+kmE)*100)/100;
   const ligue=list.filter(m=>m.payeur==='Ligue').length;
-  const pnm=list.filter(m=>m.competition==='PNM'||m.competition==='NM3').length;
+  const pnm=list.filter(m=>m.competition==='PNM'||m.competition==='PNF').length;
   document.getElementById('s-stats').innerHTML=`
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km total</div><div class="val c-y">${km}</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)}€</div></div>
-    <div class="stat"><div class="lbl">Total saison</div><div class="val c-g">${tot.toFixed(2)}€</div></div>
+    <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)}€</div></div>
     <div class="stat"><div class="lbl">Matchs Ligue</div><div class="val c-p">${ligue}</div></div>
     <div class="stat"><div class="lbl">Pré-National</div><div class="val c-b">${pnm}</div></div>`;
+
   const cm={};list.forEach(m=>{if(m.club_dom)cm[m.club_dom]=(cm[m.club_dom]||0)+1;});
   const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,8),mx=cv[0]?.[1]||1;
-  document.getElementById('s-clubs').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">Aucune donnée</span>';
+  document.getElementById('s-clubs').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.8rem">Aucune donnée</span>';
   const pm={};list.forEach(m=>{if(m.collegue)pm[m.collegue]=(pm[m.collegue]||0)+1;});
   const pv=Object.entries(pm).sort((a,b)=>b[1]-a[1]),mpx=pv[0]?.[1]||1;
-  document.getElementById('s-cols').innerHTML=pv.length?pv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mpx)*100}%;background:var(--pur)"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.82rem">—</span>';
-  drawChart(list);
+  document.getElementById('s-cols').innerHTML=pv.length?pv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mpx)*100}%;background:var(--pur)"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.8rem">—</span>';
+
+  drawBarChart(list);
+  drawPieChart(list);
 }
 
-function drawChart(list){
-  const canvas=document.getElementById('chart');if(!canvas)return;
+function drawBarChart(list){
+  const canvas=document.getElementById('chart-bar');if(!canvas)return;
   const ctx=canvas.getContext('2d');
-  const byM={};
-  list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,7);byM[k]=(byM[k]||0)+(m.total||0);});
-  const keys=Object.keys(byM).sort(),vals=keys.map(k=>byM[k]);
-  const W=canvas.offsetWidth||800;canvas.width=W;canvas.height=150;
-  if(!keys.length){ctx.fillStyle='#7d8590';ctx.font='13px system-ui';ctx.fillText('Pas encore de données',10,75);return;}
-  const pad={l:46,r:10,t:16,b:28},cW=W-pad.l-pad.r,cH=150-pad.t-pad.b;
-  const max=Math.max(...vals)*1.15,bW=Math.max(8,cW/keys.length-6);
-  ctx.clearRect(0,0,W,150);
-  ctx.strokeStyle='#30363d';ctx.lineWidth=1;
+  let byKey={};
+
+  if(curChartTab==='mensuel'){
+    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,7);byKey[k]=(byKey[k]||0)+(m.total||0);});
+  } else {
+    // Annuel : regrouper par année civile
+    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    // Aussi toutes les années de matchs
+    matchs.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);if(!byKey[k])byKey[k]=0;});
+    matchs.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    // Dédoublonner
+    byKey={};
+    const allM=curChartTab==='annuel'?matchs:list;
+    allM.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+  }
+
+  const keys=Object.keys(byKey).sort(),vals=keys.map(k=>byKey[k]);
+  const W=canvas.offsetWidth||800;canvas.width=W;canvas.height=160;
+  if(!keys.length){ctx.fillStyle='var(--mut,#7d8590)';ctx.font='13px system-ui';ctx.fillText('Pas encore de données',10,80);return;}
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark'||(!document.documentElement.getAttribute('data-theme')&&!window.matchMedia('(prefers-color-scheme:light)').matches);
+  const gridCol=isDark?'#30363d':'#dde1ea';
+  const txtCol=isDark?'#7d8590':'#6b7280';
+  const pad={l:46,r:10,t:12,b:26},cW=W-pad.l-pad.r,cH=160-pad.t-pad.b;
+  const max=Math.max(...vals)*1.15||1,bW=Math.max(8,cW/keys.length-6);
+  ctx.clearRect(0,0,W,160);
+  ctx.strokeStyle=gridCol;ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+cH-(i/4)*cH;
     ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-    ctx.fillStyle='#7d8590';ctx.font='10px system-ui';ctx.textAlign='right';
+    ctx.fillStyle=txtCol;ctx.font='10px system-ui';ctx.textAlign='right';
     ctx.fillText(Math.round((i/4)*max)+'€',pad.l-4,y+3);
   }
   keys.forEach((k,i)=>{
@@ -656,51 +866,152 @@ function drawChart(list){
     ctx.fillStyle=g;ctx.beginPath();
     if(ctx.roundRect)ctx.roundRect(x,y,bW,bH,3);else ctx.rect(x,y,bW,bH);
     ctx.fill();
-    const[,mo]=k.split('-');
-    ctx.fillStyle='#7d8590';ctx.font='9px system-ui';ctx.textAlign='center';
-    ctx.fillText(MONTHS[parseInt(mo)-1].slice(0,3),x+bW/2,150-pad.b+14);
+    const label=curChartTab==='mensuel'?MONTHS[parseInt(k.split('-')[1])-1].slice(0,3):k;
+    ctx.fillStyle=txtCol;ctx.font='9px system-ui';ctx.textAlign='center';
+    ctx.fillText(label,x+bW/2,160-pad.b+14);
   });
 }
 
-// ── CONFIG ──────────────────────────────────────────
+function drawPieChart(list){
+  const canvas=document.getElementById('chart-pie');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const byComp={};
+  list.forEach(m=>{if(m.competition)byComp[m.competition]=(byComp[m.competition]||0)+(m.total||0);});
+  const entries=Object.entries(byComp).sort((a,b)=>b[1]-a[1]);
+  const W=canvas.offsetWidth||400;canvas.width=W;canvas.height=180;
+  if(!entries.length){ctx.fillStyle='#7d8590';ctx.font='13px system-ui';ctx.fillText('Pas encore de données',10,90);return;}
+  const total=entries.reduce((s,[,v])=>s+v,0);
+  const cx=W/2,cy=90,r=75;
+  let angle=-Math.PI/2;
+  ctx.clearRect(0,0,W,180);
+  entries.forEach(([comp,val],i){
+    const slice=(val/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];ctx.fill();
+    ctx.strokeStyle=document.documentElement.getAttribute('data-theme')==='light'?'#fff':'#0d1117';ctx.lineWidth=2;ctx.stroke();
+    angle+=slice;
+  });
+  // Légende
+  document.getElementById('pie-legend').innerHTML=entries.map(([comp,val],i)=>`
+    <div class="pie-leg-item">
+      <div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]}"></div>
+      <span>${comp} — ${val.toFixed(0)}€ (${Math.round(val/total*100)}%)</span>
+    </div>`).join('');
+}
+
+// ── VIREMENTS ──
+function addVirement(){
+  const mo=document.getElementById('v-mo').value;
+  const yr=document.getElementById('v-yr').value;
+  const amt=parseFloat(document.getElementById('v-amt').value);
+  const date=document.getElementById('v-date').value;
+  const notes=document.getElementById('v-notes').value.trim();
+  if(!amt){toast('⚠️ Montant obligatoire');return;}
+  virements.push({id:Date.now()+'',mois:`${yr}-${mo}`,montant:amt,date,notes,ts:Date.now()});
+  localStorage.setItem(VK,JSON.stringify(virements));
+  document.getElementById('v-amt').value='';
+  document.getElementById('v-notes').value='';
+  renderVirements();toast('✅ Virement enregistré');
+}
+
+function renderVirements(){
+  const yr=String(document.getElementById('v-yr')?.value||new Date().getFullYear());
+  const list=virements.filter(v=>v.mois?.startsWith(yr)).sort((a,b)=>b.mois.localeCompare(a.mois));
+
+  const totalRecu=list.reduce((s,v)=>s+(v.montant||0),0);
+  // Total attendu sur l'année
+  const attendu=matchs.filter(m=>m.date?.startsWith(yr)).reduce((s,m)=>s+(m.total||0),0);
+  const ecart=Math.round((totalRecu-attendu)*100)/100;
+
+  document.getElementById('v-stats').innerHTML=`
+    <div class="stat"><div class="lbl">Virements reçus</div><div class="val c-g">${totalRecu.toFixed(2)} €</div></div>
+    <div class="stat"><div class="lbl">Total attendu</div><div class="val c-b">${attendu.toFixed(2)} €</div></div>
+    <div class="stat"><div class="lbl">Écart</div><div class="val ${ecart>=0?'c-g':'c-y'}">${ecart>=0?'+':''}${ecart.toFixed(2)} €</div></div>`;
+
+  const container=document.getElementById('v-list');
+  if(!list.length){container.innerHTML='<div class="empty"><div class="ic">💳</div><p>Aucun virement cette année</p></div>';return;}
+  container.innerHTML=list.map(v=>`
+    <div class="virement-item">
+      <span class="vi-mo">${MONTHS[parseInt(v.mois.split('-')[1])-1]} ${v.mois.split('-')[0]}</span>
+      <span class="vi-amt">${v.montant.toFixed(2)} €</span>
+      <span class="vi-date">${v.date?fd(v.date):''}</span>
+      <span style="flex:1;font-size:.74rem;color:var(--mut)">${v.notes||''}</span>
+      <button class="del" onclick="delVirement('${v.id}')">🗑</button>
+    </div>`).join('');
+}
+
+function delVirement(id){
+  if(!confirm('Supprimer ?'))return;
+  virements=virements.filter(v=>v.id!==id);
+  localStorage.setItem(VK,JSON.stringify(virements));
+  renderVirements();
+}
+
+// ── CONFIG ──
 function buildRates(){
   document.getElementById('c-rates').innerHTML=COMPS.map(c=>`
     <div class="f"><label>${c}</label><input type="number" id="cr-${c}" step="0.10" min="0" placeholder="${DEF_RATES[c]||''}"></div>`).join('');
 }
-function loadCfg(){
-  document.getElementById('c-km').value=cfg.kmRate||0.25;
+function loadCfgUI(){
+  document.getElementById('c-km').value=cfg.kmRate||0.80;
+  document.getElementById('c-prenom').value=profil.prenom||'';
+  document.getElementById('c-nom').value=profil.nom||'';
+  document.getElementById('c-niv-m').value=profil.nivM||'PNM';
+  document.getElementById('c-niv-f').value=profil.nivF||'PNF';
+  document.getElementById('c-region').value=profil.region||'AURA';
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el)el.value=cfg.rates[c]||DEF_RATES[c]||'';});
 }
 function saveCfg(){
-  cfg.kmRate=parseFloat(document.getElementById('c-km').value)||0.25;
-  localStorage.setItem(CK,JSON.stringify(cfg)); toast('✅ Taux sauvegardé');
+  cfg.kmRate=parseFloat(document.getElementById('c-km').value)||0.80;
+  localStorage.setItem(CK,JSON.stringify(cfg));toast('✅ Taux sauvegardé');
 }
 function saveRates(){
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el&&el.value)cfg.rates[c]=parseFloat(el.value);});
-  localStorage.setItem(CK,JSON.stringify(cfg)); toast('✅ Barèmes sauvegardés');
+  localStorage.setItem(CK,JSON.stringify(cfg));toast('✅ Barèmes sauvegardés');
 }
 function clearAll(){
   if(!confirm('Effacer TOUTES les données ?'))return;
-  localStorage.removeItem(SK);localStorage.removeItem(CK);
-  matchs=[];cfg={kmRate:0.25,rates:{...DEF_RATES}};
-  save();toast('Données effacées');
+  [SK,CK,PK,VK].forEach(k=>localStorage.removeItem(k));
+  matchs=[];virements=[];cfg={kmRate:0.80,rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
+  save();renderVirements();updateBarTitle();toast('Données effacées');
 }
 
-// ── EXPORT CSV ──────────────────────────────────────────
+// ── EXPORT CSV ──
 function exportCSV(){
   const list=getMonthMatchs();if(!list.length){toast('⚠️ Aucune donnée');return;}
   const mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
-  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€Km','Indemnité','Total','Collègue','Payeur','Statut'];
-  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.total||0).toFixed(2),m.collegue||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
+  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€km','Indemnité','Total net','Collègue','Contact','Payeur','Statut'];
+  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.total||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
   const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0),totT=list.reduce((s,m)=>s+(m.total||0),0);
-  rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','']);
+  rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','','']);
   const csv='\uFEFF'+[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const u=URL.createObjectURL(b),a=document.createElement('a');
   a.href=u;a.download=`arbitrage_${yr}_${mo}_${MONTHS[parseInt(mo)-1]}.csv`;a.click();URL.revokeObjectURL(u);
 }
 
-// ── UTILS ──────────────────────────────────────────
+// ── THÈME ──
+function initTheme(){
+  const saved=localStorage.getItem('arb_theme');
+  if(saved)document.documentElement.setAttribute('data-theme',saved);
+  updateThemeBtn();
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const sys=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';
+  const next=!cur?(sys==='dark'?'light':'dark'):cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('arb_theme',next);
+  updateThemeBtn();
+}
+function updateThemeBtn(){
+  const theme=document.documentElement.getAttribute('data-theme')||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+  const btn=document.getElementById('theme-btn');
+  if(btn)btn.textContent=theme==='light'?'🌙':'☀️';
+}
+
+// ── UTILS ──
 function fd(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
 let _tt;
 function toast(msg,dur=3200){
@@ -710,32 +1021,7 @@ function toast(msg,dur=3200){
   document.body.appendChild(el);_tt=setTimeout(()=>el.remove(),dur);
 }
 
-// ── THÈME ──────────────────────────────────────────
-function initTheme(){
-  const saved = localStorage.getItem('arb_theme');
-  if(saved) document.documentElement.setAttribute('data-theme', saved);
-  updateThemeBtn();
-}
-function toggleTheme(){
-  const cur = document.documentElement.getAttribute('data-theme');
-  const sys = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  let next;
-  if(!cur){ next = sys === 'dark' ? 'light' : 'dark'; }
-  else if(cur === 'dark'){ next = 'light'; }
-  else { next = 'dark'; }
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('arb_theme', next);
-  updateThemeBtn();
-}
-function updateThemeBtn(){
-  const theme = document.documentElement.getAttribute('data-theme') ||
-    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  const btn = document.getElementById('theme-btn');
-  if(btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
-}
-
 init();
-initTheme();
 </script>
 </body>
 </html>
