@@ -164,12 +164,30 @@ tbody tr:hover{background:var(--s2)}
         <label>Compétition</label>
         <select id="f-comp">
           <option value="">--</option>
-          <option value="PNM">Pré-National (PNM)</option>
-          <option value="NM3">Nationale 3</option>
-          <option value="DF3">DF3</option><option value="DF2">DF2</option>
-          <option value="DF1">DF1</option><option value="U20">U20</option>
-          <option value="U17">U17</option><option value="U15">U15</option>
-          <option value="U13">U13</option><option value="Autre">Autre</option>
+          <optgroup label="Pré-National">
+            <option value="PNM">PNM — Masculin</option>
+            <option value="PNF">PNF — Féminin</option>
+          </optgroup>
+          <optgroup label="Nationale 3">
+            <option value="NM3">NM3 — Masculin</option>
+            <option value="NF3">NF3 — Féminin</option>
+          </optgroup>
+          <optgroup label="Départemental">
+            <option value="DF3">DF3</option>
+            <option value="DF2">DF2</option>
+            <option value="DF1">DF1</option>
+          </optgroup>
+          <optgroup label="Jeunes">
+            <option value="U21M">U21 Masculin</option>
+            <option value="U21F">U21 Féminin</option>
+            <option value="U17M">U17 Masculin</option>
+            <option value="U17F">U17 Féminin</option>
+            <option value="U15M">U15 Masculin</option>
+            <option value="U15F">U15 Féminin</option>
+            <option value="U13M">U13 Masculin</option>
+            <option value="U13F">U13 Féminin</option>
+          </optgroup>
+          <option value="Autre">Autre</option>
         </select>
       </div>
       <div class="f"><label>N° Rencontre</label><input type="text" id="f-nr" placeholder="ex: 101007"></div>
@@ -273,16 +291,16 @@ tbody tr:hover{background:var(--s2)}
 const OR_KEY = ["sk-or-v1-fb2133c6cec2e24fa49f1fb3", "8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
 const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-const COMPS = ['PNM','NM3','DF3','DF2','DF1','U20','U17','U15','U13','Autre'];
-const DEF_RATES = {PNM:56.20,NM3:45,DF3:37.80,DF2:32,DF1:28,U20:20,U17:16,U15:14,U13:12,Autre:15};
+const COMPS = ['PNM','PNF','NM3','NF3','DF3','DF2','DF1','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','Autre'];
+const DEF_RATES = {PNM:45,PNF:45,NM3:43,NF3:43,DF3:43,DF2:41,DF1:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,Autre:34}; // Barème AURA 2026-2027
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const SK = 'arb_matchs', CK = 'arb_cfg';
 
-let matchs = [], cfg = {kmRate:0.25,rates:{...DEF_RATES}};
+let matchs = [], cfg = {kmRate:0.80,rates:{...DEF_RATES}};
 
 function init(){
   try{ matchs=JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){ matchs=[]; }
-  try{ const c=JSON.parse(localStorage.getItem(CK)||'{}'); cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}}; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(CK)||'{}'); cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}}; if(!c.kmRate) cfg.kmRate=0.80; }catch(e){}
   buildSelectors(); buildRates();
   renderDash(); renderMatchs(); renderStats(); populateFilter();
 
@@ -507,7 +525,7 @@ function renderDash(){
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div><div class="sub">${kmE.toFixed(2)} € (×${cfg.kmRate})</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
-    <div class="stat"><div class="lbl">Total brut</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
+    <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
   document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.82rem">Aucun match ce mois</span>';
   const cm={};list.forEach(m=>{if(m.collegue)cm[m.collegue]=(cm[m.collegue]||0)+1;});
