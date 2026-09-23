@@ -168,8 +168,8 @@ canvas{width:100%!important;display:block}
     <h2>🏀 Bienvenue</h2>
     <p>Configure ton profil pour personnaliser l'app.</p>
     <div class="fg" style="margin-bottom:16px">
-      <div class="f full"><label>Prénom</label><input type="text" id="p-prenom" placeholder="ex: Sid Ahmed"></div>
-      <div class="f full"><label>Nom</label><input type="text" id="p-nom" placeholder="ex: HACHEMI"></div>
+      <div class="f full"><label>Prénom</label><input type="text" id="p-prenom" placeholder="ex: Jean"></div>
+      <div class="f full"><label>Nom</label><input type="text" id="p-nom" placeholder="ex: DUPONT"></div>
       <div class="f">
         <label>Niveau max (Masculin)</label>
         <select id="p-niv-m">
@@ -568,8 +568,8 @@ async function handleFile(file){
     const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
     const prompt=`This is a French basketball referee assignment letter. Read all text carefully.
 Output ONLY a raw JSON object, no markdown, no explanation:
-{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"collegue":"co-referee full name (not HACHEMI)","contact_dom":"home club contact name and phone","payeur":"Ligue or Comite or Associations"}
-Use null for missing. km_aller and indemnite are from HACHEMI's row.`;
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"collegue":"co-referee full name (not the main referee)","contact_dom":"home club contact name and phone","payeur":"Ligue or Comite or Associations"}
+Use null for missing. km_aller and indemnite are from the first referee's row.`;
 
     const body={model:"openrouter/free",messages:[{role:"user",content:[
       {type:"image_url",image_url:{url:`data:${mime};base64,${b64}`}},
