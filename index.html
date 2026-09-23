@@ -327,6 +327,15 @@ canvas{width:100%!important;display:block}
         </select>
       </div>
       <div class="f full"><label>Notes</label><input type="text" id="f-notes" placeholder="Remarques…"></div>
+      <div class="f full" style="display:flex;align-items:center;gap:12px;padding:6px 0">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.84rem;color:var(--txt);text-transform:none;letter-spacing:0;margin:0">
+          <input type="checkbox" id="f-obs" style="width:16px;height:16px;accent-color:var(--pur);cursor:pointer">
+          Je suis observateur sur ce match
+        </label>
+        <div id="f-obs-indem-wrap" style="display:none;flex:1">
+          <input type="number" id="f-obs-indem" placeholder="Indemnité observateur (€)" min="0" step="0.10" style="width:100%;padding:9px 10px;background:var(--s2);border:1px solid var(--pur);border-radius:8px;color:var(--txt);font-size:.86rem;outline:none">
+        </div>
+      </div>
     </div>
     <div class="row">
       <button class="btn btn-acc" onclick="saveMatch()">💾 Enregistrer</button>
@@ -473,7 +482,7 @@ canvas{width:100%!important;display:block}
 const OR_KEY=["sk-or-v1-fb2133c6cec2e24fa49f1fb3","8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
 const OR_URL="https://openrouter.ai/api/v1/chat/completions";
 const COMPS=['PNM','PNF','NM3','NF3','R2M','R2F','R3M','R3F','D1M','D1F','D2M','D2F','D3M','D3F','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','U11M','U11F','Autre'];
-const DEF_RATES={PNM:45,PNF:45,NM3:43,NF3:43,R2M:43,R2F:43,R3M:43,R3F:43,D1M:41,D1F:41,D2M:41,D2F:41,D3M:41,D3F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:34};
+const DEF_RATES={PNM:45,PNF:45,NM3:68,NF3:68,R2M:43,R2F:43,R3M:43,R3F:43,D1M:41,D1F:41,D2M:41,D2F:41,D3M:41,D3F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:15};
 const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
 const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
@@ -499,6 +508,9 @@ function init(){
   document.getElementById('file-in').addEventListener('change',function(){
     if(this.files&&this.files[0])handleFile(this.files[0]);
     this.value='';
+  });
+  document.getElementById('f-obs').addEventListener('change',function(){
+    document.getElementById('f-obs-indem-wrap').style.display=this.checked?'block':'none';
   });
   document.getElementById('f-comp').addEventListener('change',function(){
     if(this.value&&!document.getElementById('f-indem').value)
@@ -615,7 +627,7 @@ function autoSave(d,imgUrl){
     club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
     km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
     collegue:d.collegue||'',contact:d.contact_dom||'',payeur:d.payeur||'Ligue',
-    statut:'attente',notes:'',imgUrl:imgUrl||'',ts:Date.now()
+    statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
   matchs.unshift(m);save();
   const det=document.getElementById('match-added-detail');
@@ -647,6 +659,8 @@ function saveMatch(){
     contact:document.getElementById('f-contact').value.trim(),
     payeur:document.getElementById('f-pay').value,
     statut:document.getElementById('f-st').value,
+    observe:document.getElementById('f-obs').checked,
+    obs_indem:parseFloat(document.getElementById('f-obs-indem').value)||0,
     notes:document.getElementById('f-notes').value.trim(),
     imgUrl:'',ts:Date.now()
   };
@@ -659,6 +673,9 @@ function resetForm(){
   document.getElementById('f-comp').value='';
   document.getElementById('f-pay').value='Ligue';
   document.getElementById('f-st').value='attente';
+  document.getElementById('f-obs').checked=false;
+  document.getElementById('f-obs-indem').value='';
+  document.getElementById('f-obs-indem-wrap').style.display='none';
   document.getElementById('preview-thumb').style.display='none';
   document.getElementById('ocr-st').innerHTML='';
   document.getElementById('match-added').style.display='none';
@@ -763,7 +780,7 @@ function renderMatchs(){
   em.style.display='none';
   tb.innerHTML=list.map(m=>`<tr>
     <td>${fd(m.date)}</td>
-    <td>${compBadge(m.competition)}</td>
+    <td>${compBadge(m.competition)}${m.observe?'<span class="bdg" style="background:#2d1f52;color:#a78bfa;margin-left:3px">👁 Obs.</span>':''}</td>
     <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_dom||'—'}</td>
     <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_ext||'—'}</td>
     <td>${m.km||0}</td>
@@ -812,7 +829,8 @@ function renderStats(){
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)}€</div></div>
     <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)}€</div></div>
     <div class="stat"><div class="lbl">Matchs Ligue</div><div class="val c-p">${ligue}</div></div>
-    <div class="stat"><div class="lbl">Pré-National</div><div class="val c-b">${pnm}</div></div>`;
+    <div class="stat"><div class="lbl">Pré-National</div><div class="val c-b">${pnm}</div></div>
+    <div class="stat"><div class="lbl">Fois observateur</div><div class="val c-p">${list.filter(m=>m.observe).length}</div></div>`; 
 
   const cm={};list.forEach(m=>{if(m.club_dom)cm[m.club_dom]=(cm[m.club_dom]||0)+1;});
   const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,8),mx=cv[0]?.[1]||1;
