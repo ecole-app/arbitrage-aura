@@ -245,6 +245,7 @@ canvas{width:100%!important;display:block}
     <button onclick="go('matchs',this)">📋 Matchs</button>
     <button onclick="go('stats',this)">📈 Stats</button>
     <button onclick="go('virements',this)">💳 Virements</button>
+    <button onclick="go('obs',this)">👁 Obs.</button>
     <button onclick="go('cfg',this)">⚙️</button>
   </nav>
 </div>
@@ -419,6 +420,90 @@ canvas{width:100%!important;display:block}
   <div class="virement-card" id="v-list"></div>
 </div>
 
+<!-- ══ OBSERVATIONS ══ -->
+<div class="page" id="page-obs">
+  <div class="card">
+    <div class="card-t">👁 Nouvelle mission observateur</div>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:14px">Importe la convoc observateur — l'OCR détecte automatiquement que c'est une mission obs.</p>
+
+    <label class="upload-label" for="file-in-obs" style="padding:18px;margin-bottom:12px">
+      <div class="ic" style="font-size:1.6rem;margin-bottom:6px">📸</div>
+      <p><strong>Importer convoc observateur</strong></p>
+      <p>Ou saisie manuelle ci-dessous</p>
+    </label>
+    <input type="file" id="file-in-obs" accept="image/*">
+    <img class="preview-thumb" id="preview-thumb-obs" alt="" onclick="openImgModal(this.src)" style="display:none;margin-bottom:12px">
+    <div class="ocr-st" id="ocr-st-obs"></div>
+
+    <div class="fg">
+      <div class="f"><label>Date</label><input type="date" id="o-date"></div>
+      <div class="f"><label>Heure</label><input type="time" id="o-heure"></div>
+      <div class="f full"><label>Arbitre observé</label><input type="text" id="o-arbitre" placeholder="ex: MARTIN Julien"></div>
+      <div class="f full"><label>Club domicile</label><input type="text" id="o-dom"></div>
+      <div class="f full"><label>Club visiteur</label><input type="text" id="o-ext"></div>
+      <div class="f full"><label>Salle / Ville</label><input type="text" id="o-lieu"></div>
+      <div class="f">
+        <label>Compétition</label>
+        <select id="o-comp">
+          <option value="">--</option>
+          <optgroup label="🏆 National">
+            <option value="PNM">Pré-National M</option><option value="PNF">Pré-National F</option>
+            <option value="NM3">Nationale 3 M</option><option value="NF3">Nationale 3 F</option>
+          </optgroup>
+          <optgroup label="🥈 Régional">
+            <option value="R2M">R2 M</option><option value="R2F">R2 F</option>
+            <option value="R3M">R3 M</option><option value="R3F">R3 F</option>
+          </optgroup>
+          <optgroup label="🥉 Départemental">
+            <option value="D1M">D1 M</option><option value="D1F">D1 F</option>
+            <option value="D2M">D2 M</option><option value="D2F">D2 F</option>
+            <option value="D3M">D3 M</option><option value="D3F">D3 F</option>
+          </optgroup>
+          <optgroup label="👦 Jeunes">
+            <option value="U21M">U21 M</option><option value="U21F">U21 F</option>
+            <option value="U17M">U17 M</option><option value="U17F">U17 F</option>
+            <option value="U15M">U15 M</option><option value="U15F">U15 F</option>
+            <option value="U13M">U13 M</option><option value="U13F">U13 F</option>
+          </optgroup>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <div class="f"><label>Km aller</label><input type="number" id="o-km" min="0" step="1"></div>
+      <div class="f"><label>Indemnité observateur (€)</label><input type="number" id="o-indem" min="0" step="0.10"></div>
+      <div class="f">
+        <label>Remboursé par</label>
+        <select id="o-pay">
+          <option value="Ligue">Ligue AURA</option>
+          <option value="Comite">Comité Loire</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Statut</label>
+        <select id="o-st">
+          <option value="attente">En attente</option>
+          <option value="paye">Payé ✓</option>
+        </select>
+      </div>
+      <div class="f full"><label>Notes / rapport</label><input type="text" id="o-notes" placeholder="Remarques…"></div>
+    </div>
+    <div class="row">
+      <button class="btn btn-acc" onclick="saveObs()">💾 Enregistrer</button>
+      <button class="btn btn-g" onclick="resetObs()">Effacer</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">Historique observations</div>
+    <div class="row" style="margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+        <input type="checkbox" id="obs-inclure" style="accent-color:var(--pur)" onchange="renderDash();renderStats()">
+        Inclure dans le bilan mensuel / annuel
+      </label>
+    </div>
+    <div id="obs-list"></div>
+  </div>
+</div>
+
 <!-- ══ CONFIG ══ -->
 <div class="page" id="page-cfg">
   <div class="card">
@@ -487,7 +572,7 @@ const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août'
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
 const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
 
-let matchs=[],cfg={kmRate:0.80,rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[];
+let matchs=[],cfg={kmRate:0.80,rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[],observations=[];
 let curChartTab='mensuel';
 
 // ── INIT ──
@@ -496,6 +581,7 @@ function init(){
   try{const c=JSON.parse(localStorage.getItem(CK)||'{}');cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}};}catch(e){}
   try{profil={...profil,...JSON.parse(localStorage.getItem(PK)||'{}')};}catch(e){}
   try{virements=JSON.parse(localStorage.getItem(VK)||'[]');}catch(e){virements=[];}
+  try{observations=JSON.parse(localStorage.getItem('arb_obs')||'[]');}catch(e){observations=[];}
 
   if(!profil.prenom&&!profil.nom){
     document.getElementById('setup-overlay').style.display='flex';
@@ -503,8 +589,12 @@ function init(){
 
   updateBarTitle();
   buildSelectors();buildRates();buildVirementMoSelect();
-  renderDash();renderMatchs();renderStats();renderVirements();populateFilter();
+  renderDash();renderMatchs();renderStats();renderVirements();renderObs();populateFilter();
 
+  document.getElementById('file-in-obs').addEventListener('change',function(){
+    if(this.files&&this.files[0])handleFileObs(this.files[0]);
+    this.value='';
+  });
   document.getElementById('file-in').addEventListener('change',function(){
     if(this.files&&this.files[0])handleFile(this.files[0]);
     this.value='';
@@ -736,7 +826,9 @@ function renderDash(){
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const kmE=Math.round(km*cfg.kmRate*100)/100;
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
-  const tot=Math.round((ind+kmE)*100)/100;
+  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.total||0),0):0;
+  const tot=Math.round((ind+kmE+obsExtra)*100)/100;
+  const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
   const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.total||0),0);
   const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.total||0),0);
   document.getElementById('d-stats').innerHTML=`
@@ -820,7 +912,8 @@ function renderStats(){
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
   const kmE=Math.round(km*cfg.kmRate*100)/100;
-  const tot=Math.round((ind+kmE)*100)/100;
+  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.total||0),0):0;
+  const tot=Math.round((ind+kmE+obsExtra)*100)/100;
   const ligue=list.filter(m=>m.payeur==='Ligue').length;
   const pnm=list.filter(m=>m.competition==='PNM'||m.competition==='PNF').length;
   document.getElementById('s-stats').innerHTML=`
@@ -990,8 +1083,8 @@ function saveRates(){
 }
 function clearAll(){
   if(!confirm('Effacer TOUTES les données ?'))return;
-  [SK,CK,PK,VK].forEach(k=>localStorage.removeItem(k));
-  matchs=[];virements=[];cfg={kmRate:0.80,rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
+  [SK,CK,PK,VK,'arb_obs'].forEach(k=>localStorage.removeItem(k));
+  matchs=[];virements=[];observations=[];cfg={kmRate:0.80,rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
   save();renderVirements();updateBarTitle();toast('Données effacées');
 }
 
@@ -1028,6 +1121,107 @@ function updateThemeBtn(){
   const btn=document.getElementById('theme-btn');
   if(btn)btn.textContent=theme==='light'?'🌙':'☀️';
 }
+
+// ── OBSERVATIONS ──
+async function handleFileObs(file){
+  const thumb=document.getElementById('preview-thumb-obs');
+  thumb.src=URL.createObjectURL(file);thumb.style.display='block';
+  document.getElementById('ocr-st-obs').innerHTML='<span class="sp-sm"></span> Lecture…';
+  document.getElementById('ov').classList.add('on');
+  try{
+    const b64=await toB64(file);
+    const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
+    const prompt=`This is a French basketball OBSERVER/EVALUATOR assignment letter. Read all text carefully.
+Output ONLY a raw JSON object, no markdown:
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or Autre","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"arbitre_observe":"name of referee being observed","payeur":"Ligue or Comite"}
+Use null for missing.`;
+    const body={model:"openrouter/free",messages:[{role:"user",content:[
+      {type:"image_url",image_url:{url:`data:${mime};base64,${b64}`}},
+      {type:"text",text:prompt}
+    ]}]};
+    const resp=await fetch(OR_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    document.getElementById('ov').classList.remove('on');
+    if(data.error){document.getElementById('ocr-st-obs').innerHTML='❌ '+data.error.message;return;}
+    const txt=data?.choices?.[0]?.message?.content||'';
+    let d={};
+    try{d=JSON.parse(txt.replace(/```json|```/g,'').trim());}catch(e){document.getElementById('ocr-st-obs').innerHTML='⚠️ Analyse partielle';return;}
+    if(d.date)document.getElementById('o-date').value=d.date;
+    if(d.heure)document.getElementById('o-heure').value=d.heure;
+    if(d.competition)document.getElementById('o-comp').value=d.competition;
+    if(d.club_dom)document.getElementById('o-dom').value=d.club_dom;
+    if(d.club_ext)document.getElementById('o-ext').value=d.club_ext;
+    if(d.salle_ville)document.getElementById('o-lieu').value=d.salle_ville;
+    if(d.km_aller!=null)document.getElementById('o-km').value=d.km_aller;
+    if(d.indemnite!=null)document.getElementById('o-indem').value=d.indemnite;
+    if(d.arbitre_observe)document.getElementById('o-arbitre').value=d.arbitre_observe;
+    if(d.payeur)document.getElementById('o-pay').value=d.payeur;
+    document.getElementById('ocr-st-obs').innerHTML='✅ Analyse terminée — vérifie et enregistre';
+  }catch(e){
+    document.getElementById('ov').classList.remove('on');
+    document.getElementById('ocr-st-obs').innerHTML='⚠️ Analyse impossible — saisie manuelle';
+  }
+}
+
+function saveObs(){
+  const date=document.getElementById('o-date').value;
+  if(!date){toast('⚠️ Date obligatoire');return;}
+  const km=parseFloat(document.getElementById('o-km').value)||0;
+  const indem=parseFloat(document.getElementById('o-indem').value)||0;
+  const kmEur=Math.round(km*cfg.kmRate*100)/100;
+  const o={
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
+    date, heure:document.getElementById('o-heure').value,
+    competition:document.getElementById('o-comp').value,
+    club_dom:document.getElementById('o-dom').value.trim(),
+    club_ext:document.getElementById('o-ext').value.trim(),
+    lieu:document.getElementById('o-lieu').value.trim(),
+    arbitre:document.getElementById('o-arbitre').value.trim(),
+    km, kmEur, indem,
+    total:Math.round((kmEur+indem)*100)/100,
+    payeur:document.getElementById('o-pay').value,
+    statut:document.getElementById('o-st').value,
+    notes:document.getElementById('o-notes').value.trim(),
+    ts:Date.now()
+  };
+  observations.unshift(o);
+  localStorage.setItem('arb_obs',JSON.stringify(observations));
+  renderObs();renderDash();renderStats();
+  resetObs();toast('✅ Observation enregistrée !');
+}
+
+function resetObs(){
+  ['o-date','o-heure','o-dom','o-ext','o-lieu','o-arbitre','o-km','o-indem','o-notes']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('o-comp').value='';
+  document.getElementById('o-pay').value='Ligue';
+  document.getElementById('o-st').value='attente';
+  document.getElementById('preview-thumb-obs').style.display='none';
+  document.getElementById('ocr-st-obs').innerHTML='';
+}
+
+function delObs(id){
+  if(!confirm('Supprimer ?'))return;
+  observations=observations.filter(o=>o.id!==id);
+  localStorage.setItem('arb_obs',JSON.stringify(observations));
+  renderObs();renderDash();renderStats();
+}
+
+function renderObs(){
+  const container=document.getElementById('obs-list');
+  if(!container)return;
+  if(!observations.length){container.innerHTML='<div class="empty"><div class="ic">👁</div><p>Aucune observation</p></div>';return;}
+  container.innerHTML=observations.map(o=>`
+    <div class="virement-item">
+      <span class="vi-mo">${fd(o.date)}</span>
+      <span style="flex:1;font-size:.8rem">${o.arbitre||'—'} ${o.competition?'· '+o.competition:''}</span>
+      <span class="vi-amt">${o.total.toFixed(2)} €</span>
+      <span class="vi-date">${o.statut==='paye'?'<span class="bdg bdg-ok">Payé</span>':'<span class="bdg bdg-w">Attente</span>'}</span>
+      <button class="del" onclick="delObs('${o.id}')">🗑</button>
+    </div>`).join('');
+}
+
+function obsInclus(){return document.getElementById('obs-inclure')?.checked||false;}
 
 // ── UTILS ──
 function fd(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
