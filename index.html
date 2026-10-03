@@ -815,11 +815,11 @@ function renderDash(){
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const kmE=Math.round(km*cfg.kmRate*100)/100;
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
-  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.total||0),0):0;
-  const tot=Math.round((ind+kmE+obsExtra)*100)/100;
   const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
-  const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.total||0),0);
-  const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.total||0),0);
+  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.indem||0),0):0;
+  const tot=Math.round((ind+obsExtra)*100)/100;
+  const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.indem||0),0);
+  const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.indem||0),0);
   document.getElementById('d-stats').innerHTML=`
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div><div class="sub">${kmE.toFixed(2)} € (×${cfg.kmRate})</div></div>
@@ -901,8 +901,8 @@ function renderStats(){
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
   const kmE=Math.round(km*cfg.kmRate*100)/100;
-  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.total||0),0):0;
-  const tot=Math.round((ind+kmE+obsExtra)*100)/100;
+  const obsExtra=obsInclus()?observations.reduce((s,o)=>s+(o.indem||0),0):0;
+  const tot=Math.round((ind+obsExtra)*100)/100;
   const ligue=list.filter(m=>m.payeur==='Ligue').length;
   const pnm=list.filter(m=>m.competition==='PNM'||m.competition==='PNF').length;
   document.getElementById('s-stats').innerHTML=`
@@ -1021,7 +1021,7 @@ function renderVirements(){
 
   const totalRecu=list.reduce((s,v)=>s+(v.montant||0),0);
   // Total attendu sur l'année
-  const attendu=matchs.filter(m=>m.date?.startsWith(yr)).reduce((s,m)=>s+(m.total||0),0);
+  const attendu=matchs.filter(m=>m.date?.startsWith(yr)).reduce((s,m)=>s+(m.indem||0),0);
   const ecart=Math.round((totalRecu-attendu)*100)/100;
 
   document.getElementById('v-stats').innerHTML=`
@@ -1082,8 +1082,8 @@ function exportCSV(){
   const list=getMonthMatchs();if(!list.length){toast('⚠️ Aucune donnée');return;}
   const mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
   const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€km','Indemnité','Total net','Collègue','Contact','Payeur','Statut'];
-  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.total||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
-  const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0),totT=list.reduce((s,m)=>s+(m.total||0),0);
+  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.indem||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
+  const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0),totT=list.reduce((s,m)=>s+(m.indem||0),0);
   rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','','']);
   const csv='\uFEFF'+[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
