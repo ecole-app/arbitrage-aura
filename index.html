@@ -358,7 +358,7 @@ canvas{width:100%!important;display:block}
     <table>
       <thead><tr>
         <th>Date</th><th>Compét.</th><th>Domicile</th><th>Ext.</th>
-        <th>Km</th><th>€km</th><th>Ind.</th><th>Total</th>
+        <th>Km</th><th>Indemnité</th>
         <th>Collègue</th><th>Contact</th><th>Payeur</th><th>Statut</th><th></th>
       </tr></thead>
       <tbody id="m-body"></tbody>
@@ -709,13 +709,13 @@ function autoSave(d,imgUrl){
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
     date:d.date,heure:d.heure||'',competition:d.competition||'',rencontre:d.num_rencontre||'',
     club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
-    km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
+    km,kmEur,indem,total:Math.round(indem*100)/100,
     collegue:d.collegue||'',contact:d.contact_dom||'',payeur:d.payeur||'Ligue',
     statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
   matchs.unshift(m);save();
   const det=document.getElementById('match-added-detail');
-  det.innerHTML=`📅 ${fd(m.date)}${m.heure?' à '+m.heure:''}<br>🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>${m.competition?'🏆 '+m.competition+'<br>':''}📍 ${m.lieu||'—'}<br>🚗 ${m.km} km × ${cfg.kmRate}€ = ${m.kmEur.toFixed(2)} €<br>💰 Indemnité : ${m.indem.toFixed(2)} € → <strong>Total : ${m.total.toFixed(2)} €</strong><br>👤 Collègue : ${m.collegue||'—'}`;
+  det.innerHTML=`📅 ${fd(m.date)}${m.heure?' à '+m.heure:''}<br>🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>${m.competition?'🏆 '+m.competition+'<br>':''}📍 ${m.lieu||'—'}<br>🚗 ${m.km} km aller<br>💰 <strong>Indemnité : ${m.indem.toFixed(2)} €</strong><br>👤 Collègue : ${m.collegue||'—'}`;
   document.getElementById('match-added').style.display='block';
   setSt('✅ Enregistré !');
 }
@@ -738,7 +738,7 @@ function saveMatch(){
     rencontre:document.getElementById('f-nr').value.trim(),
     club_dom:dom,club_ext:document.getElementById('f-ext').value.trim(),
     lieu:document.getElementById('f-lieu').value.trim(),
-    km,kmEur,indem,total:Math.round((kmEur+indem)*100)/100,
+    km,kmEur,indem,total:Math.round(indem*100)/100,
     collegue:document.getElementById('f-col').value.trim(),
     contact:document.getElementById('f-contact').value.trim(),
     payeur:document.getElementById('f-pay').value,
@@ -865,9 +865,7 @@ function renderMatchs(){
     <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_dom||'—'}</td>
     <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.club_ext||'—'}</td>
     <td>${m.km||0}</td>
-    <td>${(m.kmEur||0).toFixed(2)}€</td>
-    <td>${(m.indem||0).toFixed(2)}€</td>
-    <td><strong>${(m.total||0).toFixed(2)}€</strong></td>
+    <td><strong>${(m.indem||0).toFixed(2)}€</strong></td>
     <td>${m.collegue||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.contact||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.payeur||'—'}</td>
@@ -931,17 +929,17 @@ function drawBarChart(list){
   let byKey={};
 
   if(curChartTab==='mensuel'){
-    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,7);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,7);byKey[k]=(byKey[k]||0)+(m.indem||0);});
   } else {
     // Annuel : regrouper par année civile
-    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    list.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.indem||0);});
     // Aussi toutes les années de matchs
     matchs.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);if(!byKey[k])byKey[k]=0;});
-    matchs.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    matchs.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.indem||0);});
     // Dédoublonner
     byKey={};
     const allM=curChartTab==='annuel'?matchs:list;
-    allM.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.total||0);});
+    allM.forEach(m=>{if(!m.date)return;const k=m.date.slice(0,4);byKey[k]=(byKey[k]||0)+(m.indem||0);});
   }
 
   const keys=Object.keys(byKey).sort(),vals=keys.map(k=>byKey[k]);
@@ -976,7 +974,7 @@ function drawPieChart(list){
   const canvas=document.getElementById('chart-pie');if(!canvas)return;
   const ctx=canvas.getContext('2d');
   const byComp={};
-  list.forEach(m=>{if(m.competition)byComp[m.competition]=(byComp[m.competition]||0)+(m.total||0);});
+  list.forEach(m=>{if(m.competition)byComp[m.competition]=(byComp[m.competition]||0)+(m.indem||0);});
   const entries=Object.entries(byComp).sort((a,b)=>b[1]-a[1]);
   const W=canvas.offsetWidth||400;canvas.width=W;canvas.height=180;
   if(!entries.length){ctx.fillStyle='#7d8590';ctx.font='13px system-ui';ctx.fillText('Pas encore de données',10,90);return;}
