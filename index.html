@@ -655,25 +655,45 @@ async function handleFile(file){
   document.getElementById('ov').classList.add('on');
 
   try{
-    const b64=await toB64(file);
-    const mime=file.type&&file.type.startsWith('image/')?file.type:'image/jpeg';
+    const b64=await resizeB64(file);
     const prompt=`This is a French basketball referee assignment letter. Read all text carefully.
 Output ONLY a raw JSON object, no markdown, no explanation:
 {"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"collegue":"co-referee full name (not the main referee)","contact_dom":"home club contact name and phone","payeur":"Ligue or Comite or Associations"}
 Use null for missing. km_aller and indemnite are from the first referee's row.`;
 
-    const body={model:"openrouter/free",messages:[{role:"user",content:[
-      {type:"image_url",image_url:{url:`data:${mime};base64,${b64}`}},
-      {type:"text",text:prompt}
-    ]}]};
+    const PRIMARY_MODELS=["qwen/qwen3.8-27b:free","google/gemma-4-26b-a4b-it:free"];
+    let data=null;
 
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),20000);
-    let resp;
-    try{resp=await fetch(OR_URL,{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify(body)});}
-    catch(fe){clearTimeout(timeout);document.getElementById('ov').classList.remove('on');if(fe.name==='AbortError'){setSt('⏱ Délai dépassé — remplis manuellement ou réessaie');}else{setSt('⚠️ Réseau indisponible — saisie manuelle');}return;}
-    clearTimeout(timeout);
-    const data=await resp.json();
+    // Essai 1 : modèles primaires (routing auto sur la liste)
+    try{
+      const body1={models:PRIMARY_MODELS,max_tokens:400,messages:[{role:"user",content:[
+        {type:"image_url",image_url:{url:`data:image/jpeg;base64,${b64}`}},
+        {type:"text",text:prompt}
+      ]}]};
+      const ctrl1=new AbortController();
+      const t1=setTimeout(()=>ctrl1.abort(),20000);
+      let r1;
+      try{r1=await fetch(OR_URL,{method:'POST',signal:ctrl1.signal,headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify(body1)});}
+      catch(fe){clearTimeout(t1);if(fe.name!=='AbortError')throw fe;throw new Error('timeout');}
+      clearTimeout(t1);
+      const d1=await r1.json();
+      if(!d1.error)data=d1;
+    }catch(e){}
+
+    // Essai 2 : fallback openrouter/free si le premier a échoué
+    if(!data){
+      setSt('<span class="sp-sm"></span> Nouvelle tentative…');
+      try{
+        const ctrl2=new AbortController();
+        const t2=setTimeout(()=>ctrl2.abort(),20000);
+        let r2;
+        try{r2=await fetch(OR_URL,{method:'POST',signal:ctrl2.signal,headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify({model:"openrouter/free",max_tokens:400,messages:[{role:"user",content:[{type:"image_url",image_url:{url:`data:image/jpeg;base64,${b64}`}},{type:"text",text:prompt}]}]})});}
+        catch(fe){clearTimeout(t2);if(fe.name==='AbortError'){document.getElementById('ov').classList.remove('on');setSt('⏱ Délai dépassé — remplis manuellement ou réessaie');return;}throw fe;}
+        clearTimeout(t2);
+        data=await r2.json();
+      }catch(e){document.getElementById('ov').classList.remove('on');setSt('⚠️ Réseau indisponible — saisie manuelle');return;}
+    }
+
     document.getElementById('ov').classList.remove('on');
     if(data.error){setSt('❌ API: '+(data.error.message||JSON.stringify(data.error)));return;}
     const txt=data?.choices?.[0]?.message?.content||'';
@@ -721,6 +741,38 @@ function autoSave(d,imgUrl){
 }
 
 function toB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=ev=>res(ev.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+
+async function resizeB64(file,maxPx=1280,quality=0.7){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxPx||h>maxPx){const s=maxPx/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      const data=c.toDataURL('image/jpeg',quality);
+      res(data.split(',')[1]);
+    };
+    img.onerror=rej;
+    img.src=url;
+  });
+}
+
+async function callOCR(b64,prompt,model,maxTokens=400){
+  const body={model,max_tokens:maxTokens,messages:[{role:"user",content:[
+    {type:"image_url",image_url:{url:`data:image/jpeg;base64,${b64}`}},
+    {type:"text",text:prompt}
+  ]}]};
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),20000);
+  let resp;
+  try{resp=await fetch(OR_URL,{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':`Bearer ${OR_KEY}`,'HTTP-Referer':'https://ecole-app.github.io','X-Title':'Arbitrage AURA'},body:JSON.stringify(body)});}
+  catch(fe){clearTimeout(timeout);throw fe;}
+  clearTimeout(timeout);
+  return resp.json();
+}
 function setSt(html){document.getElementById('ocr-st').innerHTML=html;}
 
 // ── SAVE MATCH ──
