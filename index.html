@@ -331,7 +331,7 @@ canvas{width:100%!important;display:block}
       <div class="f full"><label>Notes</label><input type="text" id="f-notes" placeholder="Remarques…"></div>
     </div>
     <div class="row">
-      <button class="btn btn-acc" onclick="saveMatch()">💾 Enregistrer</button>
+      <button class="btn btn-acc" id="btn-save" onclick="saveMatch()">💾 Enregistrer</button>
       <button class="btn btn-g" onclick="resetForm()">Effacer</button>
     </div>
   </div>
@@ -576,6 +576,7 @@ const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août'
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
 const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
 
+let editId=null;
 let matchs=[],cfg={rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[],observations=[];
 let curChartTab='mensuel';
 
@@ -641,6 +642,7 @@ function updateBarTitle(){
 
 // ── NAV ──
 function go(name,btn){
+  if(editId&&name!=='saisie')resetForm();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
   document.getElementById('page-'+name).classList.add('on');
@@ -661,6 +663,7 @@ function closeImgModal(){document.getElementById('img-modal').classList.remove('
 
 // ── OCR ──
 async function handleFile(file){
+  if(editId)resetForm();
   const thumb=document.getElementById('preview-thumb');
   const url=URL.createObjectURL(file);
   thumb.src=url;thumb.style.display='block';
@@ -815,10 +818,19 @@ function saveMatch(){
     notes:document.getElementById('f-notes').value.trim(),
     imgUrl:'',ts:Date.now()
   };
+  if(editId){
+    const i=matchs.findIndex(x=>x.id===editId);
+    if(i>=0){m.id=editId;m.ts=matchs[i].ts;m.imgUrl=matchs[i].imgUrl||'';matchs[i]=m;}
+    else matchs.unshift(m);
+    save();resetForm();toast('✅ Match mis à jour !');
+    go('matchs',document.querySelectorAll('nav button')[2]);
+    return;
+  }
   matchs.unshift(m);save();resetForm();toast('✅ Match enregistré !');
 }
 
 function resetForm(){
+  editId=null;document.getElementById('btn-save').textContent='💾 Enregistrer';
   ['f-date','f-heure','f-nr','f-dom','f-ext','f-lieu','f-km','f-indem','f-col','f-contact','f-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-comp').value='';
@@ -936,11 +948,24 @@ function renderMatchs(){
     <td style="font-size:.72rem;color:var(--mut)">${m.contact||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.payeur||'—'}</td>
     <td><button class="tog" onclick="toggleSt('${m.id}','${m.statut}')">${m.statut==='paye'?'<span class="bdg bdg-ok">Payé ✓</span>':'<span class="bdg bdg-w">Attente</span>'}</button></td>
-    <td><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
+    <td style="white-space:nowrap"><button class="del" style="color:var(--txt)" onclick="editMatch('${m.id}')">✏️</button><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
   </tr>`).join('');
 }
 
 function resetMatchFilters(){['m-from','m-to','m-pay'].forEach(i=>document.getElementById(i).value='');document.getElementById('m-sort').value='date-desc';renderMatchs();}
+function editMatch(id){
+  const m=matchs.find(x=>x.id===id);if(!m)return;
+  go('saisie',document.querySelectorAll('nav button')[0]);
+  const set=(i,v)=>{const el=document.getElementById(i);if(el)el.value=(v==null?'':v);};
+  set('f-date',m.date);set('f-heure',m.heure);set('f-comp',m.competition);set('f-nr',m.rencontre);
+  set('f-dom',m.club_dom);set('f-ext',m.club_ext);set('f-lieu',m.lieu);set('f-km',m.km);set('f-indem',m.indem);
+  set('f-col',m.collegue);set('f-contact',m.contact);set('f-pay',m.payeur);set('f-st',m.statut);set('f-notes',m.notes);
+  document.getElementById('match-added').style.display='none';
+  document.getElementById('preview-thumb').style.display='none';
+  document.getElementById('ocr-st').innerHTML='✏️ Modification du match du '+fd(m.date)+' — corrige puis clique sur Mettre à jour';
+  editId=id;document.getElementById('btn-save').textContent='💾 Mettre à jour';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function toggleSt(id,cur){const m=matchs.find(x=>x.id===id);if(!m)return;m.statut=cur==='paye'?'attente':'paye';save();}
 function delMatch(id){if(!confirm('Supprimer ?'))return;matchs=matchs.filter(m=>m.id!==id);save();}
 
