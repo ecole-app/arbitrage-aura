@@ -682,6 +682,93 @@ async function viewImg(id){
   _imgUrl=URL.createObjectURL(b);openImgModal(_imgUrl);
 }
 
+// ── LOCAL OCR (Tesseract) : lecture sur le téléphone, sans IA, format FFBB ──
+function balParen(t){t=String(t||'').replace(/[;|]+$/,'').trim();const o=(t.match(/\(/g)||[]).length,c=(t.match(/\)/g)||[]).length;return o>c?t+')'.repeat(o-c):t;}
+function mapComp(raw){
+  const up=String(raw||'').toUpperCase();
+  const t=up.replace(/\(.*$/,'').replace(/[^A-Z0-9]/g,'');
+  if(COMPS.includes(t)&&t!=='Autre')return t;
+  let m=t.match(/^([RD])([MF])([123])$/);if(m&&COMPS.includes(m[1]+m[3]+m[2]))return m[1]+m[3]+m[2];
+  m=t.match(/^[RD]?([MF])U(\d{2})$/);if(m&&COMPS.includes('U'+m[2]+m[1]))return 'U'+m[2]+m[1];
+  if(/PR[EÉ]\s*-?\s*NAT/.test(up)){if(/FEM|FILLE/.test(up))return 'PNF';if(/MASC|GARC/.test(up))return 'PNM';}
+  return 'Autre';
+}
+function parseConvoc(text){
+  const T=String(text||'').replace(/\r/g,'');
+  const lines=T.split('\n').map(l=>l.trim()).filter(Boolean);
+  const num=v=>{const x=parseFloat(String(v).replace(',','.'));return isNaN(x)?null:x;};
+  const dm=T.match(/DATE\s*:\s*(\d{2})\/(\d{2})\/(\d{4})/);
+  const hm=T.match(/HEURE\s*:\s*(\d{1,2})\s*[:hH]\s*(\d{2})/);
+  const nr=T.match(/RENCONTRE\s*:\s*([A-Za-z0-9\-]+)/);
+  const cp=T.match(/COMPETITION\s*:\s*(.+)/);
+  const dom=T.match(/RECEVANT\s*:\s*(.+)/);
+  const ext=T.match(/VISITEUR\s*:\s*(.+)/);
+  const sal=T.match(/Adresse de la salle\s*:\s*(.+)/i);
+  let ville='';
+  if(sal){const ms=[...sal[1].matchAll(/(\d{5})\s+([^\d(]+?)\s*(?:\(|$)/g)];if(ms.length){const l=ms[ms.length-1];ville=l[1]+' '+l[2].trim();}}
+  const pay=T.match(/INDEMNIS[EÉ]S?\s+PAR\s*:\s*(.+)/i)||T.match(/FRAIS D.OFFICIEL\s+PAR\s*:\s*(.+)/i);
+  const arbs=[];
+  for(let i=0;i<lines.length;i++){
+    const m=lines[i].match(/Arbitre\s*:\s*(.+?)\s*\(\s*Licence/i);
+    if(!m)continue;
+    let km=null,ind=null;
+    for(let j=i;j<Math.min(i+4,lines.length);j++){
+      if(j>i&&/Arbitre\s*:|Sans fonction/i.test(lines[j]))break;
+      const k=lines[j].match(/kms?\s+aller\s*:\s*([\d.,]+)/i);if(k&&km==null)km=num(k[1]);
+      const n=lines[j].match(/Indemnit[ée]\s*:\s*([\d.,]+)/i);if(n&&ind==null)ind=num(n[1]);
+    }
+    arbs.push({nom:m[1].trim(),km_aller:km,indemnite:ind});
+  }
+  let warn='';
+  const full=arbs.filter(a=>a.km_aller!=null&&a.indemnite!=null);
+  if(full.length>=2){const bs=full.map(a=>a.indemnite-0.8*a.km_aller);if(Math.max(...bs)-Math.min(...bs)>0.05)warn='montants incohérents entre les arbitres, vérifie km et indemnité';}
+  if(arbs.length&&full.length<arbs.length)warn='une ligne arbitre est incomplète, vérifie km et indemnité';
+  return{
+    date:dm?`${dm[3]}-${dm[2]}-${dm[1]}`:null,
+    heure:hm?hm[1].padStart(2,'0')+':'+hm[2]:'',
+    competition:cp?mapComp(cp[1]):'Autre',
+    num_rencontre:nr?nr[1]:'',
+    club_dom:dom?balParen(dom[1]):'',
+    club_ext:ext?balParen(ext[1]):'',
+    salle_ville:ville,
+    payeur:pay?pay[1].trim():'',
+    arbitres:arbs,_warn:warn
+  };
+}
+let _tessW=null,_tessLog=null;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('script'));document.head.appendChild(s);});}
+async function getTess(){
+  if(!window.Tesseract)await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js');
+  if(!_tessW)_tessW=Tesseract.createWorker('fra',1,{langPath:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/fra@1.0.0/4.0.0_best_int',logger:m=>{if(_tessLog)_tessLog(m);}}).catch(e=>{_tessW=null;throw e;});
+  return _tessW;
+}
+async function prepForOcr(file){
+  // Agrandit x1.6 en niveaux de gris (améliore la lecture des petits textes soulignés), plafonné à 3400 px
+  try{
+    const bmp=await createImageBitmap(file);
+    const long=Math.max(bmp.width,bmp.height),sc=Math.min(1.6,3400/long);
+    const c=document.createElement('canvas');
+    c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
+    const ctx=c.getContext('2d');
+    ctx.filter='grayscale(1)';
+    ctx.drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
+    return await new Promise(r=>c.toBlob(r,'image/png'));
+  }catch(e){return file;}
+}
+async function localOCR(file,onStatus){
+  try{
+    onStatus&&onStatus('<span class="sp-sm"></span> Lecture sur ton téléphone… (le 1er import télécharge le module, ~5 s de plus)');
+    const w=await getTess();
+    _tessLog=m=>{if(m.status==='recognizing text'&&onStatus)onStatus('<span class="sp-sm"></span> Lecture… '+Math.round((m.progress||0)*100)+' %');};
+    const img=await prepForOcr(file);
+    const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
+    const d=parseConvoc(out.data.text);
+    if(!d.date||!d.club_dom||!d.arbitres.length)return{err:'Lecture locale incomplète'};
+    return{d,model:'OCR local',warn:d._warn};
+  }catch(e){return{err:'Lecture locale impossible'};}
+}
+// ── END LOCAL OCR ──
+
 // ── OCR ──
 async function handleFile(file){
   if(editId)resetForm();
@@ -694,7 +781,6 @@ async function handleFile(file){
   document.getElementById('ov').classList.add('on');
 
   try{
-    const b64=await resizeB64(file);
     const prompt=`This is a French basketball referee assignment letter (FFBB format). Read it carefully and follow the layout exactly:
 - DATE / HEURE / N° RENCONTRE / COMPETITION are in the top box.
 - Section A "GROUPEMENT SPORTIF RECEVANT : <NAME>" -> club_dom is the club NAME written after the colon (never the hall address, never the correspondent).
@@ -706,7 +792,12 @@ Output ONLY a raw JSON object, no markdown, no explanation:
 {"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"string","club_ext":"string","salle_ville":"string","payeur":"Ligue or Comite or Associations","arbitres":[{"nom":"SURNAME First name","km_aller":number,"indemnite":number}]}
 Use null for missing.`;
 
-    const res=await ocrJSON(b64,prompt,m=>setSt(m));
+    let res=await localOCR(file,m=>setSt(m));
+    if(!res.d){
+      setSt('<span class="sp-sm"></span> Lecture par IA…');
+      const b64=await resizeB64(file);
+      res=await ocrJSON(b64,prompt,m=>setSt(m));
+    }
     document.getElementById('ov').classList.remove('on');
     if(!res.d){setSt('⚠️ '+res.err+' — remplis manuellement ou réessaie');return;}
     const d=res.d;
@@ -742,7 +833,8 @@ Use null for missing.`;
     if(d.date&&d.club_dom){
       autoSave(d,url);
       const warn=(arbs.length&&d._found===false)?' · ⚠️ ton nom n\'a pas été retrouvé, vérifie km/indemnité/collègue':'';
-      setSt('✅ Enregistré ! <span style="color:var(--mut);font-size:.72rem">lu par '+(res.model||'?')+'</span>'+warn);
+      const warn2=res.warn?' · ⚠️ '+res.warn:'';
+      setSt('✅ Enregistré ! <span style="color:var(--mut);font-size:.72rem">lu par '+(res.model||'?')+'</span>'+warn+warn2);
     }
     else setSt('⚠️ Infos incomplètes — vérifie et enregistre');
   }catch(e){
