@@ -661,9 +661,23 @@ function openImgModal(src){
 }
 function closeImgModal(){document.getElementById('img-modal').classList.remove('on');}
 
+// ── IMAGES (IndexedDB) : on garde le fichier d'origine de chaque convocation ──
+let pendingFile=null,pendingObsFile=null,_imgUrl=null;
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('arb_db',1);r.onupgradeneeded=()=>r.result.createObjectStore('imgs');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function imgPut(id,blob){try{const db=await idb();await new Promise((res,rej)=>{const t=db.transaction('imgs','readwrite');t.objectStore('imgs').put(blob,id);t.oncomplete=res;t.onerror=()=>rej(t.error);});return true;}catch(e){return false;}}
+async function imgGet(id){try{const db=await idb();return await new Promise((res,rej)=>{const q=db.transaction('imgs').objectStore('imgs').get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error);});}catch(e){return null;}}
+async function imgDel(id){try{const db=await idb();await new Promise(res=>{const t=db.transaction('imgs','readwrite');t.objectStore('imgs').delete(id);t.oncomplete=res;t.onerror=res;});}catch(e){}}
+async function viewImg(id){
+  const b=await imgGet(id);
+  if(!b){toast('⚠️ Image introuvable');return;}
+  if(_imgUrl)URL.revokeObjectURL(_imgUrl);
+  _imgUrl=URL.createObjectURL(b);openImgModal(_imgUrl);
+}
+
 // ── OCR ──
 async function handleFile(file){
   if(editId)resetForm();
+  pendingFile=file;
   const thumb=document.getElementById('preview-thumb');
   const url=URL.createObjectURL(file);
   thumb.src=url;thumb.style.display='block';
@@ -741,6 +755,7 @@ function autoSave(d,imgUrl){
     statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
   matchs.unshift(m);save();
+  if(pendingFile){const f=pendingFile;pendingFile=null;imgPut(m.id,f).then(ok=>{if(ok){m.hasImg=true;save();}});}
   const det=document.getElementById('match-added-detail');
   det.innerHTML=`📅 ${fd(m.date)}${m.heure?' à '+m.heure:''}<br>🏀 ${m.club_dom}${m.club_ext?' vs '+m.club_ext:''}<br>${m.competition?'🏆 '+m.competition+'<br>':''}📍 ${m.lieu||'—'}<br>🚗 ${m.km} km aller<br>💰 <strong>Indemnité : ${m.indem.toFixed(2)} €</strong><br>👤 Collègue : ${m.collegue||'—'}`;
   document.getElementById('match-added').style.display='block';
@@ -820,17 +835,19 @@ function saveMatch(){
   };
   if(editId){
     const i=matchs.findIndex(x=>x.id===editId);
-    if(i>=0){m.id=editId;m.ts=matchs[i].ts;m.imgUrl=matchs[i].imgUrl||'';matchs[i]=m;}
+    if(i>=0){m.id=editId;m.ts=matchs[i].ts;m.imgUrl=matchs[i].imgUrl||'';m.hasImg=matchs[i].hasImg;matchs[i]=m;}
     else matchs.unshift(m);
     save();resetForm();toast('✅ Match mis à jour !');
     go('matchs',document.querySelectorAll('nav button')[2]);
     return;
   }
-  matchs.unshift(m);save();resetForm();toast('✅ Match enregistré !');
+  matchs.unshift(m);save();
+  if(pendingFile){const f=pendingFile;pendingFile=null;imgPut(m.id,f).then(ok=>{if(ok){m.hasImg=true;save();}});}
+  resetForm();toast('✅ Match enregistré !');
 }
 
 function resetForm(){
-  editId=null;document.getElementById('btn-save').textContent='💾 Enregistrer';
+  editId=null;pendingFile=null;document.getElementById('btn-save').textContent='💾 Enregistrer';
   ['f-date','f-heure','f-nr','f-dom','f-ext','f-lieu','f-km','f-indem','f-col','f-contact','f-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-comp').value='';
@@ -948,7 +965,7 @@ function renderMatchs(){
     <td style="font-size:.72rem;color:var(--mut)">${m.contact||'—'}</td>
     <td style="font-size:.72rem;color:var(--mut)">${m.payeur||'—'}</td>
     <td><button class="tog" onclick="toggleSt('${m.id}','${m.statut}')">${m.statut==='paye'?'<span class="bdg bdg-ok">Payé ✓</span>':'<span class="bdg bdg-w">Attente</span>'}</button></td>
-    <td style="white-space:nowrap"><button class="del" style="color:var(--txt)" onclick="editMatch('${m.id}')">✏️</button><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
+    <td style="white-space:nowrap">${m.hasImg?`<button class="del" style="color:var(--txt)" onclick="viewImg('${m.id}')">📎</button>`:''}<button class="del" style="color:var(--txt)" onclick="editMatch('${m.id}')">✏️</button><button class="del" onclick="delMatch('${m.id}')">🗑</button></td>
   </tr>`).join('');
 }
 
@@ -967,7 +984,7 @@ function editMatch(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function toggleSt(id,cur){const m=matchs.find(x=>x.id===id);if(!m)return;m.statut=cur==='paye'?'attente':'paye';save();}
-function delMatch(id){if(!confirm('Supprimer ?'))return;matchs=matchs.filter(m=>m.id!==id);save();}
+function delMatch(id){if(!confirm('Supprimer ?'))return;matchs=matchs.filter(m=>m.id!==id);imgDel(id);save();}
 
 // ── STATS ──
 function getSeasonMatchs(){
@@ -1197,6 +1214,7 @@ function updateThemeBtn(){
 
 // ── OBSERVATIONS ──
 async function handleFileObs(file){
+  pendingObsFile=file;
   const thumb=document.getElementById('preview-thumb-obs');
   thumb.src=URL.createObjectURL(file);thumb.style.display='block';
   document.getElementById('ocr-st-obs').innerHTML='<span class="sp-sm"></span> Lecture…';
@@ -1249,12 +1267,14 @@ function saveObs(){
     ts:Date.now()
   };
   observations.unshift(o);
+  if(pendingObsFile){const f=pendingObsFile;pendingObsFile=null;imgPut(o.id,f).then(ok=>{if(ok){o.hasImg=true;localStorage.setItem('arb_obs',JSON.stringify(observations));renderObs();}});}
   localStorage.setItem('arb_obs',JSON.stringify(observations));
   renderObs();renderDash();renderStats();
   resetObs();toast('✅ Observation enregistrée !');
 }
 
 function resetObs(){
+  pendingObsFile=null;
   ['o-date','o-heure','o-dom','o-ext','o-lieu','o-arbitre','o-km','o-indem','o-notes']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('o-comp').value='';
@@ -1266,7 +1286,7 @@ function resetObs(){
 
 function delObs(id){
   if(!confirm('Supprimer ?'))return;
-  observations=observations.filter(o=>o.id!==id);
+  observations=observations.filter(o=>o.id!==id);imgDel(id);
   localStorage.setItem('arb_obs',JSON.stringify(observations));
   renderObs();renderDash();renderStats();
 }
@@ -1281,7 +1301,7 @@ function renderObs(){
       <span style="flex:1;font-size:.8rem">${o.arbitre||'—'} ${o.competition?'· '+o.competition:''}</span>
       <span class="vi-amt">${(o.indem||0).toFixed(2)} €</span>
       <span class="vi-date">${o.statut==='paye'?'<span class="bdg bdg-ok">Payé</span>':'<span class="bdg bdg-w">Attente</span>'}</span>
-      <button class="del" onclick="delObs('${o.id}')">🗑</button>
+      ${o.hasImg?`<button class="del" style="color:var(--txt)" onclick="viewImg('${o.id}')">📎</button>`:''}<button class="del" onclick="delObs('${o.id}')">🗑</button>
     </div>`).join('');
 }
 
@@ -1297,6 +1317,7 @@ function toast(msg,dur=3200){
   document.body.appendChild(el);_tt=setTimeout(()=>el.remove(),dur);
 }
 
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 init();
 </script>
 </body>
