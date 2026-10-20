@@ -100,6 +100,7 @@ tbody tr:hover{background:var(--s2)}
 .sh select{padding:5px 8px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--txt);font-size:.74rem;cursor:pointer;outline:none;text-transform:none;font-weight:400}
 .mr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .mr label{font-size:.76rem;font-weight:600;color:var(--mut)}
+.mr input[type=date]{padding:7px 10px;background:var(--s1);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.84rem;outline:none;color-scheme:dark light}
 .mr select{padding:7px 10px;background:var(--s1);border:1px solid var(--b);border-radius:8px;color:var(--txt);font-size:.84rem;outline:none;cursor:pointer}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{background:var(--s2);border:1px solid var(--b);border-radius:20px;padding:3px 10px;font-size:.74rem}
@@ -317,7 +318,7 @@ canvas{width:100%!important;display:block}
         <select id="f-pay">
           <option value="Ligue">Ligue AURA</option>
           <option value="Comite">Comité Loire</option>
-          <option value="Associations">Associations</option>
+          <option value="Associations">Club</option>
         </select>
       </div>
       <div class="f">
@@ -350,10 +351,22 @@ canvas{width:100%!important;display:block}
 
 <!-- ══ MATCHS ══ -->
 <div class="page" id="page-matchs">
-  <div class="sh">
-    <span>Matchs</span>
-    <select id="m-fil" onchange="renderMatchs()"><option value="">Tous</option></select>
+  <div class="sh"><span>Matchs</span></div>
+  <div class="mr" style="margin-bottom:8px">
+    <label>Du</label><input type="date" id="m-from" onchange="renderMatchs()">
+    <label>au</label><input type="date" id="m-to" onchange="renderMatchs()">
   </div>
+  <div class="mr" style="margin-bottom:10px">
+    <label>Payeur</label>
+    <select id="m-pay" onchange="renderMatchs()">
+      <option value="">Tous</option>
+      <option value="Ligue">Ligue</option>
+      <option value="Comite">Comité</option>
+      <option value="Associations">Club</option>
+    </select>
+    <button class="btn" style="padding:7px 12px;background:var(--s2);color:var(--txt)" onclick="resetMatchFilters()">✕ Réinitialiser</button>
+  </div>
+  <div id="m-recap" style="font-size:.8rem;color:var(--mut);margin-bottom:10px"></div>
   <div class="tw">
     <table>
       <thead><tr>
@@ -580,7 +593,7 @@ function init(){
 
   updateBarTitle();
   buildSelectors();buildRates();buildVirementMoSelect();
-  renderDash();renderMatchs();renderStats();renderVirements();renderObs();populateFilter();
+  renderDash();renderMatchs();renderStats();renderVirements();renderObs();
 
   document.getElementById('file-in-obs').addEventListener('change',function(){
     if(this.files&&this.files[0])handleFileObs(this.files[0]);
@@ -814,7 +827,7 @@ function resetForm(){
 
 function save(){
   localStorage.setItem(SK,JSON.stringify(matchs));
-  renderDash();renderMatchs();renderStats();populateFilter();
+  renderDash();renderMatchs();renderStats();
 }
 
 // ── SELECTORS ──
@@ -885,20 +898,6 @@ function renderDash(){
 }
 
 // ── MATCHS TABLE ──
-function populateFilter(){
-  const sel=document.getElementById('m-fil');
-  const months=[...new Set(matchs.map(m=>m.date?.slice(0,7)).filter(Boolean))].sort().reverse();
-  const cur=sel.value;
-  sel.innerHTML='<option value="">Tous</option>';
-  months.forEach(mo=>{
-    const[y,m]=mo.split('-');
-    const o=document.createElement('option');
-    o.value=mo;o.textContent=`${MONTHS[parseInt(m)-1]} ${y}`;
-    if(mo===cur)o.selected=true;
-    sel.appendChild(o);
-  });
-}
-
 function compBadge(c){
   if(!c)return'—';
   const cls=(['PNM','PNF','NM3','NF3'].includes(c)?'bdg-nat':['R2M','R2F','R3M','R3F'].includes(c)?'bdg-reg':'bdg-dep');
@@ -906,9 +905,11 @@ function compBadge(c){
 }
 
 function renderMatchs(){
-  const fil=document.getElementById('m-fil').value;
-  const list=fil?matchs.filter(m=>m.date?.startsWith(fil)):matchs;
+  const from=document.getElementById('m-from').value,to=document.getElementById('m-to').value,pay=document.getElementById('m-pay').value;
+  const list=matchs.filter(m=>(!from||(m.date&&m.date>=from))&&(!to||(m.date&&m.date<=to))&&(!pay||m.payeur===pay));
   const tb=document.getElementById('m-body'),em=document.getElementById('m-empty');
+  const totF=list.reduce((s,m)=>s+(m.indem||0),0);
+  document.getElementById('m-recap').innerHTML=`<strong style="color:var(--txt)">${list.length}</strong> match${list.length>1?'s':''} · <strong style="color:var(--grn)">${totF.toFixed(2)} €</strong>`;
   if(!list.length){tb.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
   tb.innerHTML=list.map(m=>`<tr>
@@ -926,6 +927,7 @@ function renderMatchs(){
   </tr>`).join('');
 }
 
+function resetMatchFilters(){['m-from','m-to','m-pay'].forEach(i=>document.getElementById(i).value='');renderMatchs();}
 function toggleSt(id,cur){const m=matchs.find(x=>x.id===id);if(!m)return;m.statut=cur==='paye'?'attente':'paye';save();}
 function delMatch(id){if(!confirm('Supprimer ?'))return;matchs=matchs.filter(m=>m.id!==id);save();}
 
