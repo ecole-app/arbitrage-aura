@@ -384,10 +384,11 @@ canvas{width:100%!important;display:block}
   <div class="mr"><label>Année :</label><select id="v-yr"></select></div>
 
   <div class="card">
-    <div class="card-t">Virements reçus de la Ligue</div>
-    <p style="font-size:.78rem;color:var(--mut);margin-bottom:14px">Enregistre chaque virement mensuel quand il arrive.</p>
+    <div class="card-t">Virements reçus</div>
+    <p style="font-size:.78rem;color:var(--mut);margin-bottom:14px">Enregistre chaque virement : si le montant correspond aux matchs en attente du mois, ils passent automatiquement en « Payé ».</p>
     <div class="fg" style="margin-bottom:12px">
-      <div class="f"><label>Mois</label><select id="v-mo"></select></div>
+      <div class="f"><label>Payeur</label><select id="v-pay"><option value="Ligue">Ligue</option><option value="Comite">Comité</option><option value="Associations">Associations</option></select></div>
+      <div class="f"><label>Mois des matchs</label><select id="v-mo"></select></div>
       <div class="f"><label>Montant reçu (€)</label><input type="number" id="v-amt" placeholder="ex: 168.60" step="0.01" min="0"></div>
       <div class="f"><label>Date de réception</label><input type="date" id="v-date"></div>
       <div class="f"><label>Notes</label><input type="text" id="v-notes" placeholder="Virement janv…"></div>
@@ -1267,12 +1268,76 @@ function addVirement(){
   const amt=parseFloat(document.getElementById('v-amt').value);
   const date=document.getElementById('v-date').value;
   const notes=document.getElementById('v-notes').value.trim();
+  const payeur=document.getElementById('v-pay').value;
   if(!amt){toast('⚠️ Montant obligatoire');return;}
-  virements.push({id:Date.now()+'',mois:`${yr}-${mo}`,montant:amt,date,notes,ts:Date.now()});
-  localStorage.setItem(VK,JSON.stringify(virements));
+  const v={id:Date.now()+'',mois:`${yr}-${mo}`,montant:amt,date,notes,payeur,ts:Date.now()};
+  virements.push(v);
   document.getElementById('v-amt').value='';
   document.getElementById('v-notes').value='';
-  renderVirements();toast('✅ Virement enregistré');
+  const msg=reconcileVirement(v);
+  persistAll();
+  toast(msg,5000);
+}
+
+// ── RAPPROCHEMENT virement ↔ matchs en attente ──
+const cents=x=>Math.round((Number(x)||0)*100);
+function persistAll(){
+  save();
+  try{localStorage.setItem('arb_obs',JSON.stringify(observations));localStorage.setItem(VK,JSON.stringify(virements));}catch(e){}
+  renderVirements();renderObs();renderDash();renderStats();
+}
+function findSubsets(items,target){
+  const n=items.length;if(n>20)return null;
+  const res=[];
+  for(let mask=1;mask<(1<<n)&&res.length<2;mask++){
+    let t=0;for(let i=0;i<n;i++)if(mask&(1<<i))t+=items[i].c;
+    if(t===target)res.push(items.filter((_,i)=>mask&(1<<i)));
+  }
+  return res;
+}
+function pendingItems(v){
+  const pay=v.payeur||'Ligue';
+  const ok=x=>(x.payeur||'Ligue')===pay&&x.statut==='attente'&&x.date&&x.date.startsWith(v.mois);
+  return[...matchs.filter(ok).map(x=>({k:'m',x,c:cents(x.indem)})),...observations.filter(ok).map(x=>({k:'o',x,c:cents(x.indem)}))];
+}
+function markPaid(v,set,forced){
+  set.forEach(i=>{i.x.statut='paye';});
+  v.matchIds=set.filter(i=>i.k==='m').map(i=>i.x.id);
+  v.obsIds=set.filter(i=>i.k==='o').map(i=>i.x.id);
+  v.ok=true;v.forced=!!forced;
+}
+function reconcileVirement(v){
+  const pc=cents(v.montant),items=pendingItems(v);
+  const mItems=items.filter(i=>i.k==='m');
+  const sumM=mItems.reduce((s,i)=>s+i.c,0),sumAll=items.reduce((s,i)=>s+i.c,0);
+  let set=null,how='';
+  if(mItems.length&&sumM===pc){set=mItems;how='all';}
+  else if(items.length&&sumAll===pc){set=items;how='all';}
+  else{
+    const subs=findSubsets(items,pc);
+    if(subs&&subs.length===1){
+      const lab=subs[0].map(i=>fd(i.x.date)+' '+(i.x.club_dom||'')+' ('+(i.x.indem||0).toFixed(2)+' €)').join('\n');
+      if(confirm('Le virement de '+v.montant.toFixed(2)+' € correspond exactement à ces matchs :\n\n'+lab+'\n\nLes passer en payé ?')){set=subs[0];how='subset';}
+    }
+  }
+  if(set){
+    markPaid(v,set,false);v.attendu=pc/100;v.ecart=0;
+    return '✅ '+set.length+' match'+(set.length>1?'s':'')+' passé'+(set.length>1?'s':'')+' en payé — le total correspond ('+v.montant.toFixed(2)+' €)';
+  }
+  v.ok=false;v.attendu=sumAll/100;v.ecart=(pc-sumAll)/100;v.nPend=items.length;
+  if(!items.length)return 'Virement enregistré — aucun match en attente pour ce mois et ce payeur';
+  return '⚠️ Virement enregistré — pas de correspondance : attendu '+v.attendu.toFixed(2)+' €, reçu '+v.montant.toFixed(2)+' € (écart '+(v.ecart>0?'+':'')+v.ecart.toFixed(2)+' €)';
+}
+function rapprocher(id){
+  const v=virements.find(x=>x.id===id);if(!v)return;
+  const msg=reconcileVirement(v);persistAll();toast(msg,5000);
+}
+function forcerPaye(id){
+  const v=virements.find(x=>x.id===id);if(!v)return;
+  const items=pendingItems(v);
+  if(!items.length){toast('Aucun match en attente pour ce mois');return;}
+  if(!confirm('Passer les '+items.length+' match(s) en attente de ce mois en payé, malgré l\'écart ?'))return;
+  markPaid(v,items,true);persistAll();toast('✅ '+items.length+' match(s) passé(s) en payé');
 }
 
 function renderVirements(){
@@ -1281,7 +1346,8 @@ function renderVirements(){
 
   const totalRecu=list.reduce((s,v)=>s+(v.montant||0),0);
   // Total attendu sur l'année
-  const attendu=matchs.filter(m=>m.date?.startsWith(yr)).reduce((s,m)=>s+(m.indem||0),0);
+  const payeursV=new Set(list.map(v=>v.payeur||'Ligue'));
+  const attendu=[...matchs,...(obsInclus()?observations:[])].filter(m=>m.date?.startsWith(yr)&&payeursV.has(m.payeur||'Ligue')).reduce((s,m)=>s+(m.indem||0),0);
   const ecart=Math.round((totalRecu-attendu)*100)/100;
 
   document.getElementById('v-stats').innerHTML=`
@@ -1296,16 +1362,24 @@ function renderVirements(){
       <span class="vi-mo">${MONTHS[parseInt(v.mois.split('-')[1])-1]} ${v.mois.split('-')[0]}</span>
       <span class="vi-amt">${v.montant.toFixed(2)} €</span>
       <span class="vi-date">${v.date?fd(v.date):''}</span>
+      <span style="font-size:.72rem;color:var(--mut)">${({Ligue:'Ligue',Comite:'Comité',Associations:'Associations'})[v.payeur||'Ligue']}</span>
       <span style="flex:1;font-size:.74rem;color:var(--mut)">${v.notes||''}</span>
+      ${v.ok===true?`<span class="bdg bdg-ok">✅ ${(v.matchIds||[]).length+(v.obsIds||[]).length} payé(s)${v.forced?' (forcé)':''}</span>`
+        :v.ok===false?`<span class="bdg bdg-w" title="attendu ${(v.attendu||0).toFixed(2)} €">⚠️ écart ${v.ecart>0?'+':''}${(v.ecart||0).toFixed(2)} €</span>`:''}
+      ${v.ok!==true?`<button class="del" style="color:var(--txt)" title="Rapprocher" onclick="rapprocher('${v.id}')">🔄</button>`:''}
+      ${v.ok===false&&v.nPend?`<button class="del" style="color:var(--txt)" title="Tout passer en payé" onclick="forcerPaye('${v.id}')">✓</button>`:''}
       <button class="del" onclick="delVirement('${v.id}')">🗑</button>
     </div>`).join('');
 }
 
 function delVirement(id){
-  if(!confirm('Supprimer ?'))return;
-  virements=virements.filter(v=>v.id!==id);
-  localStorage.setItem(VK,JSON.stringify(virements));
-  renderVirements();
+  const v=virements.find(x=>x.id===id);
+  const n=v?((v.matchIds||[]).length+(v.obsIds||[]).length):0;
+  if(!confirm(n?'Supprimer ce virement ? Les '+n+' match(s) qu\'il avait passés en payé repasseront en attente.':'Supprimer ?'))return;
+  if(v){matchs.forEach(m=>{if((v.matchIds||[]).includes(m.id))m.statut='attente';});observations.forEach(o=>{if((v.obsIds||[]).includes(o.id))o.statut='attente';});}
+  virements=virements.filter(x=>x.id!==id);
+  persistAll();
+  return;
 }
 
 // ── CONFIG ──
