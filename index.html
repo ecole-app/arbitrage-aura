@@ -545,14 +545,6 @@ canvas{width:100%!important;display:block}
   </div>
 
   <div class="card">
-    <div class="card-t">💰 Taux kilométrique (aller)</div>
-    <div class="fg" style="max-width:240px">
-      <div class="f full"><label>€ / km</label><input type="number" id="c-km" step="0.01" min="0" placeholder="0.80"></div>
-    </div>
-    <button class="btn btn-acc" onclick="saveCfg()">Enregistrer</button>
-  </div>
-
-  <div class="card">
     <div class="card-t">📋 Indemnités par défaut</div>
     <p style="font-size:.76rem;color:var(--mut);margin-bottom:12px">Pré-rempli si OCR ne trouve pas le montant.</p>
     <div class="fg" id="c-rates"></div>
@@ -576,7 +568,7 @@ const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août'
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
 const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
 
-let matchs=[],cfg={kmRate:0.80,rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[],observations=[];
+let matchs=[],cfg={rates:{...DEF_RATES}},profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'},virements=[],observations=[];
 let curChartTab='mensuel';
 
 // ── INIT ──
@@ -737,12 +729,11 @@ Use null for missing. km_aller and indemnite are from the first referee's row.`;
 function autoSave(d,imgUrl){
   const km=parseFloat(d.km_aller)||0;
   const indem=parseFloat(d.indemnite)||0;
-  const kmEur=Math.round(km*cfg.kmRate*100)/100;
   const m={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
     date:d.date,heure:d.heure||'',competition:d.competition||'',rencontre:d.num_rencontre||'',
     club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
-    km,kmEur,indem,total:Math.round(indem*100)/100,
+    km,indem,total:Math.round(indem*100)/100,
     collegue:d.collegue||'',contact:d.contact_dom||'',payeur:d.payeur||'Ligue',
     statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
@@ -795,7 +786,6 @@ function saveMatch(){
   if(!date||!dom){toast('⚠️ Date et club domicile obligatoires');return;}
   const km=parseFloat(document.getElementById('f-km').value)||0;
   const indem=parseFloat(document.getElementById('f-indem').value)||0;
-  const kmEur=Math.round(km*cfg.kmRate*100)/100;
   const m={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
     date,heure:document.getElementById('f-heure').value,
@@ -803,7 +793,7 @@ function saveMatch(){
     rencontre:document.getElementById('f-nr').value.trim(),
     club_dom:dom,club_ext:document.getElementById('f-ext').value.trim(),
     lieu:document.getElementById('f-lieu').value.trim(),
-    km,kmEur,indem,total:Math.round(indem*100)/100,
+    km,indem,total:Math.round(indem*100)/100,
     collegue:document.getElementById('f-col').value.trim(),
     contact:document.getElementById('f-contact').value.trim(),
     payeur:document.getElementById('f-pay').value,
@@ -878,7 +868,6 @@ function getMonthMatchs(){
 function renderDash(){
   const list=getMonthMatchs();
   const km=list.reduce((s,m)=>s+(m.km||0),0);
-  const kmE=Math.round(km*cfg.kmRate*100)/100;
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
   const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
   const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.indem||0),0):0;
@@ -887,7 +876,7 @@ function renderDash(){
   const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.indem||0),0);
   document.getElementById('d-stats').innerHTML=`
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
-    <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div><div class="sub">${kmE.toFixed(2)} € (×${cfg.kmRate})</div></div>
+    <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
     <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
@@ -952,7 +941,6 @@ function renderStats(){
   const list=getSeasonMatchs();
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
-  const kmE=Math.round(km*cfg.kmRate*100)/100;
   const obsExtra=obsInclus()?observations.reduce((s,o)=>s+(o.indem||0),0):0;
   const tot=Math.round((ind+obsExtra)*100)/100;
   const ligue=list.filter(m=>m.payeur==='Ligue').length;
@@ -1106,17 +1094,12 @@ function buildRates(){
     <div class="f"><label>${c}</label><input type="number" id="cr-${c}" step="0.10" min="0" placeholder="${DEF_RATES[c]||''}"></div>`).join('');
 }
 function loadCfgUI(){
-  document.getElementById('c-km').value=cfg.kmRate||0.80;
   document.getElementById('c-prenom').value=profil.prenom||'';
   document.getElementById('c-nom').value=profil.nom||'';
   document.getElementById('c-niv-m').value=profil.nivM||'PNM';
   document.getElementById('c-niv-f').value=profil.nivF||'PNF';
   document.getElementById('c-region').value=profil.region||'AURA';
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el)el.value=cfg.rates[c]||DEF_RATES[c]||'';});
-}
-function saveCfg(){
-  cfg.kmRate=parseFloat(document.getElementById('c-km').value)||0.80;
-  localStorage.setItem(CK,JSON.stringify(cfg));toast('✅ Taux sauvegardé');
 }
 function saveRates(){
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el&&el.value)cfg.rates[c]=parseFloat(el.value);});
@@ -1125,7 +1108,7 @@ function saveRates(){
 function clearAll(){
   if(!confirm('Effacer TOUTES les données ?'))return;
   [SK,CK,PK,VK,'arb_obs'].forEach(k=>localStorage.removeItem(k));
-  matchs=[];virements=[];observations=[];cfg={kmRate:0.80,rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
+  matchs=[];virements=[];observations=[];cfg={rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
   save();renderVirements();updateBarTitle();toast('Données effacées');
 }
 
@@ -1133,10 +1116,10 @@ function clearAll(){
 function exportCSV(){
   const list=getMonthMatchs();if(!list.length){toast('⚠️ Aucune donnée');return;}
   const mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
-  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','€km','Indemnité','Total net','Collègue','Contact','Payeur','Statut'];
-  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.kmEur||0).toFixed(2),(m.indem||0).toFixed(2),(m.indem||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
-  const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0),totT=list.reduce((s,m)=>s+(m.indem||0),0);
-  rows.push(['','','','','TOTAL','','',totKm,'',totI.toFixed(2),totT.toFixed(2),'','','','']);
+  const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','Indemnité (km inclus)','Collègue','Contact','Payeur','Statut'];
+  const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.indem||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
+  const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0);
+  rows.push(['','','','','TOTAL','','',totKm,totI.toFixed(2),'','','','']);
   const csv='\uFEFF'+[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const u=URL.createObjectURL(b),a=document.createElement('a');
@@ -1214,7 +1197,6 @@ function saveObs(){
   if(!date){toast('⚠️ Date obligatoire');return;}
   const km=parseFloat(document.getElementById('o-km').value)||0;
   const indem=parseFloat(document.getElementById('o-indem').value)||0;
-  const kmEur=Math.round(km*cfg.kmRate*100)/100;
   const o={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,5),
     date, heure:document.getElementById('o-heure').value,
@@ -1223,8 +1205,8 @@ function saveObs(){
     club_ext:document.getElementById('o-ext').value.trim(),
     lieu:document.getElementById('o-lieu').value.trim(),
     arbitre:document.getElementById('o-arbitre').value.trim(),
-    km, kmEur, indem,
-    total:Math.round((kmEur+indem)*100)/100,
+    km, indem,
+    total:Math.round(indem*100)/100,
     payeur:document.getElementById('o-pay').value,
     statut:document.getElementById('o-st').value,
     notes:document.getElementById('o-notes').value.trim(),
@@ -1261,7 +1243,7 @@ function renderObs(){
     <div class="virement-item">
       <span class="vi-mo">${fd(o.date)}</span>
       <span style="flex:1;font-size:.8rem">${o.arbitre||'—'} ${o.competition?'· '+o.competition:''}</span>
-      <span class="vi-amt">${o.total.toFixed(2)} €</span>
+      <span class="vi-amt">${(o.indem||0).toFixed(2)} €</span>
       <span class="vi-date">${o.statut==='paye'?'<span class="bdg bdg-ok">Payé</span>':'<span class="bdg bdg-w">Attente</span>'}</span>
       <button class="del" onclick="delObs('${o.id}')">🗑</button>
     </div>`).join('');
