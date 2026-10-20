@@ -563,8 +563,9 @@ function init(){
   try{virements=JSON.parse(localStorage.getItem(VK)||'[]');}catch(e){virements=[];}
   try{observations=JSON.parse(localStorage.getItem('arb_obs')||'[]');}catch(e){observations=[];}
   matchs.forEach(m=>{m.payeur=normPayeur(m.payeur);});observations.forEach(o=>{o.payeur=normPayeur(o.payeur);});
-  // migration des anciens codes de compétition vers les codes FFBB
+  // migration des anciens codes de compétition vers les codes FFBB + retrait des handicaps (H +xx) dans les noms de clubs
   {let ch=false;
+   [...matchs,...observations].forEach(x=>{['club_dom','club_ext'].forEach(k=>{if(x[k]&&/\(\s*H\s*[+\-]?\s*\d/i.test(x[k])){x[k]=stripHcp(x[k]);ch=true;}});});
    [...matchs,...observations].forEach(x=>{if(LEGACY_COMP[x.competition]){x.competition=LEGACY_COMP[x.competition];ch=true;}});
    Object.keys(LEGACY_COMP).forEach(k=>{if(cfg.rates[k]!=null){if(cfg.rates[LEGACY_COMP[k]]==null||cfg.rates[LEGACY_COMP[k]]===DEF_RATES[LEGACY_COMP[k]])cfg.rates[LEGACY_COMP[k]]=cfg.rates[k];delete cfg.rates[k];ch=true;}});
    ['nivM','nivF'].forEach(k=>{if(LEGACY_COMP[profil[k]]){profil[k]=LEGACY_COMP[profil[k]];ch=true;}});
@@ -657,7 +658,8 @@ async function viewImg(id){
 }
 
 // ── LOCAL OCR (Tesseract) : lecture sur le téléphone, sans IA, format FFBB ──
-function balParen(t){t=String(t||'').replace(/[;|]+$/,'').trim();const o=(t.match(/\(/g)||[]).length,c=(t.match(/\)/g)||[]).length;return o>c?t+')'.repeat(o-c):t;}
+function stripHcp(t){return String(t||'').replace(/\s*\(\s*H\s*[+\-]?\s*\d+\s*\)?/gi,'').trim();}
+function balParen(t){t=stripHcp(String(t||'').replace(/[;|]+$/,'').trim());const o=(t.match(/\(/g)||[]).length,c=(t.match(/\)/g)||[]).length;return o>c?t+')'.repeat(o-c):t;}
 function mapComp(raw){
   const up=String(raw||'').toUpperCase();
   const t=up.replace(/\(.*$/,'').replace(/[^A-Z0-9]/g,'');
@@ -700,7 +702,7 @@ function parseConvoc(text){
   return{
     date:dm?`${dm[3]}-${dm[2]}-${dm[1]}`:null,
     heure:hm?hm[1].padStart(2,'0')+':'+hm[2]:'',
-    competition:cp?mapComp(cp[1]):'Autre',
+    competition:cp?mapComp(cp[1]):'Autre',comp_raw:cp?cp[1].replace(/\s*\(.*$/,'').trim():'',
     num_rencontre:nr?nr[1]:'',
     club_dom:dom?balParen(dom[1]):'',
     club_ext:ext?balParen(ext[1]):'',
@@ -716,29 +718,47 @@ async function getTess(){
   if(!_tessW)_tessW=Tesseract.createWorker('fra',1,{langPath:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/fra@1.0.0/4.0.0_best_int',logger:m=>{if(_tessLog)_tessLog(m);}}).catch(e=>{_tessW=null;throw e;});
   return _tessW;
 }
-async function prepForOcr(file){
-  // Agrandit x1.6 en niveaux de gris (améliore la lecture des petits textes soulignés), plafonné à 3400 px
+async function prepForOcr(file,scale=1.6){
+  // Agrandit en niveaux de gris (améliore la lecture des petits textes soulignés), plafonné à 3400 px
   try{
     const bmp=await createImageBitmap(file);
-    const long=Math.max(bmp.width,bmp.height),sc=Math.min(1.6,3400/long);
+    const long=Math.max(bmp.width,bmp.height),sc=Math.min(scale,3400/long);
     const c=document.createElement('canvas');
     c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
     const ctx=c.getContext('2d');
+    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     ctx.filter='grayscale(1)';
     ctx.drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
     return await new Promise(r=>c.toBlob(r,'image/png'));
   }catch(e){return file;}
 }
+function arbsComplete(d){return d.arbitres.length>0&&d.arbitres.every(a=>a.km_aller!=null&&a.indemnite!=null);}
+function convocOK(d){return !!(d.date&&d.club_dom&&d.club_ext&&arbsComplete(d));}
+function mergeConvoc(a,b){
+  const r={...a};
+  ['date','heure','num_rencontre','club_dom','club_ext','salle_ville','payeur','comp_raw'].forEach(k=>{if(!r[k]&&b[k])r[k]=b[k];});
+  if((!r.competition||r.competition==='Autre')&&b.competition)r.competition=b.competition;
+  if(!arbsComplete(r)&&arbsComplete(b))r.arbitres=b.arbitres;
+  else if(!r.arbitres.length&&b.arbitres.length)r.arbitres=b.arbitres;
+  r._warn=r.arbitres.length?b._warn&&!arbsComplete(r)?b._warn:r._warn:'';
+  return r;
+}
 async function localOCR(file,onStatus){
   try{
     onStatus&&onStatus('<span class="sp-sm"></span> Lecture sur ton téléphone… (le 1er import télécharge le module, ~5 s de plus)');
     const w=await getTess();
-    _tessLog=m=>{if(m.status==='recognizing text'&&onStatus)onStatus('<span class="sp-sm"></span> Lecture… '+Math.round((m.progress||0)*100)+' %');};
-    const img=await prepForOcr(file);
-    const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
-    const d=parseConvoc(out.data.text);
-    if(!d.date||!d.club_dom||!d.arbitres.length)return{err:'Lecture locale incomplète'};
-    return{d,model:'OCR local',warn:d._warn};
+    let best=null;
+    // plusieurs passes à des échelles différentes : on ne continue que s'il manque encore une info
+    for(const sc of [1.6,2.2,1.0]){
+      _tessLog=m=>{if(m.status==='recognizing text'&&onStatus)onStatus('<span class="sp-sm"></span> Lecture… '+Math.round((m.progress||0)*100)+' %'+(best?' (2e passe)':''));};
+      const img=await prepForOcr(file,sc);
+      const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
+      const d=parseConvoc(out.data.text);
+      best=best?mergeConvoc(best,d):d;
+      if(convocOK(best))break;
+    }
+    if(!best.date||!best.club_dom||!best.arbitres.length)return{err:'Lecture locale incomplète'};
+    return{d:best,model:'OCR local',warn:best._warn};
   }catch(e){return{err:'Lecture locale impossible'};}
 }
 // ── END LOCAL OCR ──
@@ -826,7 +846,7 @@ function autoSave(d,imgUrl){
     club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
     km,indem,total:Math.round(indem*100)/100,
     collegue:d.collegue||'',contact:d.contact_dom||'',payeur:normPayeur(d.payeur),
-    statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
+    statut:'attente',notes:(d.competition==='Autre'&&d.comp_raw)?d.comp_raw:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
   matchs.unshift(m);save();
   if(pendingFile){const f=pendingFile;pendingFile=null;imgPut(m.id,f).then(ok=>{if(ok){m.hasImg=true;save();}});}
