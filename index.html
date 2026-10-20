@@ -578,6 +578,7 @@ function init(){
   try{profil={...profil,...JSON.parse(localStorage.getItem(PK)||'{}')};}catch(e){}
   try{virements=JSON.parse(localStorage.getItem(VK)||'[]');}catch(e){virements=[];}
   try{observations=JSON.parse(localStorage.getItem('arb_obs')||'[]');}catch(e){observations=[];}
+  matchs.forEach(m=>{m.payeur=normPayeur(m.payeur);});observations.forEach(o=>{o.payeur=normPayeur(o.payeur);});
 
   if(!profil.prenom&&!profil.nom){
     document.getElementById('setup-overlay').style.display='flex';
@@ -716,7 +717,7 @@ Use null for missing. km_aller and indemnite are from the first referee's row.`;
     if(d.indemnite!=null)document.getElementById('f-indem').value=d.indemnite;
     if(d.collegue)document.getElementById('f-col').value=d.collegue;
     if(d.contact_dom)document.getElementById('f-contact').value=d.contact_dom;
-    if(d.payeur)document.getElementById('f-pay').value=d.payeur;
+    if(d.payeur){d.payeur=normPayeur(d.payeur);document.getElementById('f-pay').value=d.payeur;}
 
     if(d.date&&d.club_dom)autoSave(d,url);
     else setSt('⚠️ Infos incomplètes — vérifie et enregistre');
@@ -734,7 +735,7 @@ function autoSave(d,imgUrl){
     date:d.date,heure:d.heure||'',competition:d.competition||'',rencontre:d.num_rencontre||'',
     club_dom:d.club_dom||'',club_ext:d.club_ext||'',lieu:d.salle_ville||'',
     km,indem,total:Math.round(indem*100)/100,
-    collegue:d.collegue||'',contact:d.contact_dom||'',payeur:d.payeur||'Ligue',
+    collegue:d.collegue||'',contact:d.contact_dom||'',payeur:normPayeur(d.payeur),
     statut:'attente',notes:'',observe:false,obs_indem:0,imgUrl:imgUrl||'',ts:Date.now()
   };
   matchs.unshift(m);save();
@@ -815,6 +816,13 @@ function resetForm(){
   document.getElementById('match-added').style.display='none';
 }
 
+function normPayeur(p){
+  const t=String(p||'').toLowerCase();
+  if(!t)return 'Ligue';
+  if(/comit|loire|d[ée]partement/.test(t))return 'Comite';
+  if(/ligue|r[ée]gion|aura|auvergne/.test(t))return 'Ligue';
+  return 'Associations';
+}
 function save(){
   localStorage.setItem(SK,JSON.stringify(matchs));
   renderDash();renderMatchs();renderStats();
@@ -1184,7 +1192,7 @@ Use null for missing.`;
     if(d.km_aller!=null)document.getElementById('o-km').value=d.km_aller;
     if(d.indemnite!=null)document.getElementById('o-indem').value=d.indemnite;
     if(d.arbitre_observe)document.getElementById('o-arbitre').value=d.arbitre_observe;
-    if(d.payeur)document.getElementById('o-pay').value=d.payeur;
+    if(d.payeur){d.payeur=normPayeur(d.payeur);document.getElementById('o-pay').value=d.payeur;}
     document.getElementById('ocr-st-obs').innerHTML='✅ Analyse terminée — vérifie et enregistre';
   }catch(e){
     document.getElementById('ov').classList.remove('on');
