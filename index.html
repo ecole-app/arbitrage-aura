@@ -684,6 +684,7 @@ Use null for missing.`;
       const keys=[profil.nom,profil.prenom].map(norm).map(x=>x.trim()).filter(Boolean);
       let idx=arbs.findIndex(a=>keys.length&&keys.every(k=>norm(a.nom).includes(k)));
       if(idx<0)idx=arbs.findIndex(a=>keys.length&&keys.some(k=>norm(a.nom).includes(k)));
+      d._found=idx>=0;
       if(idx<0)idx=0;
       const me=arbs[idx];
       if(me.km_aller!=null)d.km_aller=me.km_aller;
@@ -705,7 +706,11 @@ Use null for missing.`;
     if(d.contact_dom)document.getElementById('f-contact').value=d.contact_dom;
     if(d.payeur){d.payeur=normPayeur(d.payeur);document.getElementById('f-pay').value=d.payeur;}
 
-    if(d.date&&d.club_dom)autoSave(d,url);
+    if(d.date&&d.club_dom){
+      autoSave(d,url);
+      const warn=(arbs.length&&d._found===false)?' · ⚠️ ton nom n\'a pas été retrouvé, vérifie km/indemnité/collègue':'';
+      setSt('✅ Enregistré ! <span style="color:var(--mut);font-size:.72rem">lu par '+(res.model||'?')+'</span>'+warn);
+    }
     else setSt('⚠️ Infos incomplètes — vérifie et enregistre');
   }catch(e){
     document.getElementById('ov').classList.remove('on');
@@ -766,7 +771,7 @@ async function ocrJSON(b64,prompt,onRetry){
       const txt=j?.choices?.[0]?.message?.content||'';
       const mt=txt.match(/\{[\s\S]*\}/);
       if(!mt)return{err:txt?('Réponse inattendue — '+txt.slice(0,80)):'Réponse vide'};
-      try{return{d:JSON.parse(mt[0])};}catch(e){return{err:'Réponse inattendue — '+txt.slice(0,80)};}
+      try{return{d:JSON.parse(mt[0]),model:j.model||''};}catch(e){return{err:'Réponse inattendue — '+txt.slice(0,80)};}
     }catch(fe){return{err:fe.name==='AbortError'?'⏱ Délai dépassé':'Réseau indisponible'};}
     finally{clearTimeout(t);}
   };
