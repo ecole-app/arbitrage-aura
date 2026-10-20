@@ -173,27 +173,11 @@ canvas{width:100%!important;display:block}
       <div class="f full"><label>Nom</label><input type="text" id="p-nom" placeholder="ex: DUPONT"></div>
       <div class="f">
         <label>Niveau max (Masculin)</label>
-        <select id="p-niv-m">
-          <option value="PNM">Pré-National M</option>
-          <option value="NM3">Nationale 3 M</option>
-          <option value="R2M">Régionale 2 M</option>
-          <option value="R3M">Régionale 3 M</option>
-          <option value="D1M">D1 M</option>
-          <option value="D2M">D2 M</option>
-          <option value="D3M">D3 M</option>
-        </select>
+        <select id="p-niv-m"></select>
       </div>
       <div class="f">
         <label>Niveau max (Féminin)</label>
-        <select id="p-niv-f">
-          <option value="PNF">Pré-National F</option>
-          <option value="NF3">Nationale 3 F</option>
-          <option value="R2F">Régionale 2 F</option>
-          <option value="R3F">Régionale 3 F</option>
-          <option value="D1F">D1 F</option>
-          <option value="D2F">D2 F</option>
-          <option value="D3F">D3 F</option>
-        </select>
+        <select id="p-niv-f"></select>
       </div>
       <div class="f full">
         <label>Région / Ligue</label>
@@ -278,32 +262,7 @@ canvas{width:100%!important;display:block}
       <div class="f"><label>Heure</label><input type="time" id="f-heure"></div>
       <div class="f">
         <label>Compétition</label>
-        <select id="f-comp">
-          <option value="">--</option>
-          <optgroup label="🏆 National">
-            <option value="PNM">Pré-National M</option>
-            <option value="PNF">Pré-National F</option>
-            <option value="NM3">Nationale 3 M</option>
-            <option value="NF3">Nationale 3 F</option>
-          </optgroup>
-          <optgroup label="🥈 Régional">
-            <option value="R2M">Régionale 2 M</option><option value="R2F">Régionale 2 F</option>
-            <option value="R3M">Régionale 3 M</option><option value="R3F">Régionale 3 F</option>
-          </optgroup>
-          <optgroup label="🥉 Départemental">
-            <option value="D1M">D1 M</option><option value="D1F">D1 F</option>
-            <option value="D2M">D2 M</option><option value="D2F">D2 F</option>
-            <option value="D3M">D3 M</option><option value="D3F">D3 F</option>
-          </optgroup>
-          <optgroup label="👦 Jeunes">
-            <option value="U21M">U21 M</option><option value="U21F">U21 F</option>
-            <option value="U17M">U17 M</option><option value="U17F">U17 F</option>
-            <option value="U15M">U15 M</option><option value="U15F">U15 F</option>
-            <option value="U13M">U13 M</option><option value="U13F">U13 F</option>
-            <option value="U11M">U11 M</option><option value="U11F">U11 F</option>
-          </optgroup>
-          <option value="Autre">Autre</option>
-        </select>
+        <select id="f-comp"></select>
       </div>
       <div class="f"><label>N° Rencontre</label><input type="text" id="f-nr" placeholder="ex: 101007"></div>
       <div class="f full"><label>Club domicile</label><input type="text" id="f-dom"></div>
@@ -464,29 +423,7 @@ canvas{width:100%!important;display:block}
       <div class="f full"><label>Salle / Ville</label><input type="text" id="o-lieu"></div>
       <div class="f">
         <label>Compétition</label>
-        <select id="o-comp">
-          <option value="">--</option>
-          <optgroup label="🏆 National">
-            <option value="PNM">Pré-National M</option><option value="PNF">Pré-National F</option>
-            <option value="NM3">Nationale 3 M</option><option value="NF3">Nationale 3 F</option>
-          </optgroup>
-          <optgroup label="🥈 Régional">
-            <option value="R2M">R2 M</option><option value="R2F">R2 F</option>
-            <option value="R3M">R3 M</option><option value="R3F">R3 F</option>
-          </optgroup>
-          <optgroup label="🥉 Départemental">
-            <option value="D1M">D1 M</option><option value="D1F">D1 F</option>
-            <option value="D2M">D2 M</option><option value="D2F">D2 F</option>
-            <option value="D3M">D3 M</option><option value="D3F">D3 F</option>
-          </optgroup>
-          <optgroup label="👦 Jeunes">
-            <option value="U21M">U21 M</option><option value="U21F">U21 F</option>
-            <option value="U17M">U17 M</option><option value="U17F">U17 F</option>
-            <option value="U15M">U15 M</option><option value="U15F">U15 F</option>
-            <option value="U13M">U13 M</option><option value="U13F">U13 F</option>
-          </optgroup>
-          <option value="Autre">Autre</option>
-        </select>
+        <select id="o-comp"></select>
       </div>
       <div class="f"><label>Km aller</label><input type="number" id="o-km" min="0" step="1"></div>
       <div class="f"><label>Indemnité observateur (€)</label><input type="number" id="o-indem" min="0" step="0.10"></div>
@@ -533,17 +470,11 @@ canvas{width:100%!important;display:block}
       <div class="f"><label>Nom</label><input type="text" id="c-nom"></div>
       <div class="f">
         <label>Niveau max (M)</label>
-        <select id="c-niv-m">
-          <option value="PNM">Pré-National M</option><option value="NM3">Nationale 3 M</option>
-          <option value="R2M">R2 M</option><option value="R3M">R3 M</option><option value="D1M">D1 M</option>
-        </select>
+        <select id="c-niv-m"></select>
       </div>
       <div class="f">
         <label>Niveau max (F)</label>
-        <select id="c-niv-f">
-          <option value="PNF">Pré-National F</option><option value="NF3">Nationale 3 F</option>
-          <option value="R2F">R2 F</option><option value="R3F">R3 F</option><option value="D1F">D1 F</option>
-        </select>
+        <select id="c-niv-f"></select>
       </div>
       <div class="f full">
         <label>Région / Ligue</label>
@@ -578,8 +509,43 @@ canvas{width:100%!important;display:block}
 <script>
 const OR_KEY=["sk-or-v1-fb2133c6cec2e24fa49f1fb3","8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
 const OR_URL="https://openrouter.ai/api/v1/chat/completions";
-const COMPS=['PNM','PNF','NM3','NF3','R2M','R2F','R3M','R3F','D1M','D1F','D2M','D2F','D3M','D3F','U21M','U21F','U17M','U17F','U15M','U15F','U13M','U13F','U11M','U11F','Autre'];
-const DEF_RATES={PNM:45,PNF:45,NM3:68,NF3:68,R2M:43,R2F:43,R3M:43,R3F:43,D1M:41,D1F:41,D2M:41,D2F:41,D3M:41,D3F:41,U21M:37,U21F:37,U17M:34,U17F:34,U15M:34,U15F:34,U13M:34,U13F:34,U11M:34,U11F:34,Autre:15};
+const COMP_GROUPS=[
+  ['🏆 National',['PNM','PNF','NM3','NF3']],
+  ['🥈 Régional',['RM2','RF2','RM3','RF3']],
+  ['🥉 Départemental',['DM1','DF1','DM2','DF2','DM3','DF3']],
+  ['👦 Jeunes régional',['RMU21','RFU21','RMU17','RFU17','RMU15','RFU15','RMU13','RFU13']],
+  ['🧒 Jeunes départemental',['DMU17','DFU17','DMU15','DFU15','DMU13','DFU13','DMU11','DFU11']]
+];
+const COMPS=[].concat(...COMP_GROUPS.map(g=>g[1]),['Autre']);
+const COMP_NIV_M=['PNM','NM3','RM2','RM3','DM1','DM2','DM3'],COMP_NIV_F=['PNF','NF3','RF2','RF3','DF1','DF2','DF3'];
+// anciens codes (avant alignement sur les codes FFBB des convocations)
+const LEGACY_COMP={R2M:'RM2',R2F:'RF2',R3M:'RM3',R3F:'RF3',D1M:'DM1',D1F:'DF1',D2M:'DM2',D2F:'DF2',D3M:'DM3',D3F:'DF3',U21M:'RMU21',U21F:'RFU21'};
+const DEF_RATES={PNM:45,PNF:45,NM3:68,NF3:68,RM2:43,RF2:43,RM3:43,RF3:43,DM1:41,DF1:41,DM2:41,DF2:41,DM3:41,DF3:41,RMU21:37,RFU21:37,RMU17:34,RFU17:34,RMU15:34,RFU15:34,RMU13:34,RFU13:34,DMU17:34,DFU17:34,DMU15:34,DFU15:34,DMU13:34,DFU13:34,DMU11:34,DFU11:34,Autre:15};
+function compLabel(c){
+  if(c==='PNM')return 'PNM · Pré-National M';if(c==='PNF')return 'PNF · Pré-National F';
+  if(c==='NM3')return 'NM3 · Nationale 3 M';if(c==='NF3')return 'NF3 · Nationale 3 F';
+  let m=c.match(/^([RD])([MF])(\d)$/);if(m)return c+' · '+(m[1]==='R'?'Régional':'Départemental')+' '+m[3]+' '+m[2];
+  m=c.match(/^([RD])([MF])U(\d+)$/);if(m)return c+' · U'+m[3]+' '+m[2]+(m[1]==='R'?' (rég.)':' (dép.)');
+  return c;
+}
+function compOpt(c){const o=document.createElement('option');o.value=c;o.textContent=compLabel(c);return o;}
+function fillCompSelects(){
+  ['f-comp','o-comp'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='<option value="">--</option>';
+    COMP_GROUPS.forEach(([lab,list])=>{const g=document.createElement('optgroup');g.label=lab;list.forEach(c=>g.appendChild(compOpt(c)));sel.appendChild(g);});
+    sel.appendChild(compOpt('Autre'));
+  });
+  [['p-niv-m',COMP_NIV_M],['c-niv-m',COMP_NIV_M],['p-niv-f',COMP_NIV_F],['c-niv-f',COMP_NIV_F]].forEach(([id,list])=>{
+    const sel=document.getElementById(id);if(sel)list.forEach(c=>sel.appendChild(compOpt(c)));
+  });
+}
+// ajoute l'option si le code lu n'existe pas dans la liste (ex: ancien code ou code rare)
+function setComp(id,code){
+  const sel=document.getElementById(id);if(!sel)return;
+  if(code&&![...sel.options].some(o=>o.value===code)){const au=[...sel.options].find(o=>o.value==='Autre');sel.insertBefore(compOpt(code),au||null);}
+  sel.value=code||'';
+}
 const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#64748b'];
 const SK='arb_matchs',CK='arb_cfg',PK='arb_profil',VK='arb_virements';
@@ -590,12 +556,20 @@ let curChartTab='mensuel';
 
 // ── INIT ──
 function init(){
+  fillCompSelects();
   try{matchs=JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){matchs=[];}
   try{const c=JSON.parse(localStorage.getItem(CK)||'{}');cfg={...cfg,...c,rates:{...DEF_RATES,...(c.rates||{})}};}catch(e){}
   try{profil={...profil,...JSON.parse(localStorage.getItem(PK)||'{}')};}catch(e){}
   try{virements=JSON.parse(localStorage.getItem(VK)||'[]');}catch(e){virements=[];}
   try{observations=JSON.parse(localStorage.getItem('arb_obs')||'[]');}catch(e){observations=[];}
   matchs.forEach(m=>{m.payeur=normPayeur(m.payeur);});observations.forEach(o=>{o.payeur=normPayeur(o.payeur);});
+  // migration des anciens codes de compétition vers les codes FFBB
+  {let ch=false;
+   [...matchs,...observations].forEach(x=>{if(LEGACY_COMP[x.competition]){x.competition=LEGACY_COMP[x.competition];ch=true;}});
+   Object.keys(LEGACY_COMP).forEach(k=>{if(cfg.rates[k]!=null){if(cfg.rates[LEGACY_COMP[k]]==null||cfg.rates[LEGACY_COMP[k]]===DEF_RATES[LEGACY_COMP[k]])cfg.rates[LEGACY_COMP[k]]=cfg.rates[k];delete cfg.rates[k];ch=true;}});
+   ['nivM','nivF'].forEach(k=>{if(LEGACY_COMP[profil[k]]){profil[k]=LEGACY_COMP[profil[k]];ch=true;}});
+   if(ch){try{localStorage.setItem(SK,JSON.stringify(matchs));localStorage.setItem('arb_obs',JSON.stringify(observations));localStorage.setItem(CK,JSON.stringify(cfg));localStorage.setItem(PK,JSON.stringify(profil));}catch(e){}}
+  }
 
   if(!profil.prenom&&!profil.nom){
     document.getElementById('setup-overlay').style.display='flex';
@@ -688,8 +662,8 @@ function mapComp(raw){
   const up=String(raw||'').toUpperCase();
   const t=up.replace(/\(.*$/,'').replace(/[^A-Z0-9]/g,'');
   if(COMPS.includes(t)&&t!=='Autre')return t;
-  let m=t.match(/^([RD])([MF])([123])$/);if(m&&COMPS.includes(m[1]+m[3]+m[2]))return m[1]+m[3]+m[2];
-  m=t.match(/^[RD]?([MF])U(\d{2})$/);if(m&&COMPS.includes('U'+m[2]+m[1]))return 'U'+m[2]+m[1];
+  if(LEGACY_COMP[t])return LEGACY_COMP[t];
+  if(/^[RD][MF][123]$/.test(t)||/^[RD][MF]U\d{2}$/.test(t)||/^N[MF][123]$/.test(t))return t; // code FFBB tel qu'imprimé
   if(/PR[EÉ]\s*-?\s*NAT/.test(up)){if(/FEM|FILLE/.test(up))return 'PNF';if(/MASC|GARC/.test(up))return 'PNM';}
   return 'Autre';
 }
@@ -789,7 +763,7 @@ async function handleFile(file){
 - Section C "Arbitre INDEMNISES PAR : ..." lists the referees (1 to 3). List EVERY referee of section C only, each with the km and the indemnity printed on his own row. Do NOT include correspondents (sections A and B) nor table officials / OTM (section D).
 - payeur is who pays in the heading of section C (Ligue, Comite or Associations).
 Output ONLY a raw JSON object, no markdown, no explanation:
-{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or U21M or U21F or U17M or U17F or U15M or U15F or U13M or U13F or U11M or U11F or Autre","num_rencontre":"string","club_dom":"string","club_ext":"string","salle_ville":"string","payeur":"Ligue or Comite or Associations","arbitres":[{"nom":"SURNAME First name","km_aller":number,"indemnite":number}]}
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or RM2 or RF2 or RM3 or RF3 or DM1 or DF1 or DM2 or DF2 or DM3 or DF3 or RMU21 or RFU21 or RMU17 or RFU17 or RMU15 or RFU15 or RMU13 or RFU13 or DMU17 or DFU17 or DMU15 or DFU15 or DMU13 or DFU13 or DMU11 or DFU11 or Autre","num_rencontre":"string","club_dom":"string","club_ext":"string","salle_ville":"string","payeur":"Ligue or Comite or Associations","arbitres":[{"nom":"SURNAME First name","km_aller":number,"indemnite":number}]}
 Use null for missing.`;
 
     let res=await localOCR(file,m=>setSt(m));
@@ -819,7 +793,7 @@ Use null for missing.`;
 
     if(d.date)document.getElementById('f-date').value=d.date;
     if(d.heure)document.getElementById('f-heure').value=d.heure;
-    if(d.competition)document.getElementById('f-comp').value=d.competition;
+    if(d.competition)setComp('f-comp',d.competition);
     if(d.num_rencontre)document.getElementById('f-nr').value=d.num_rencontre;
     if(d.club_dom)document.getElementById('f-dom').value=d.club_dom;
     if(d.club_ext)document.getElementById('f-ext').value=d.club_ext;
@@ -1070,7 +1044,7 @@ function renderDash(){
 // ── MATCHS TABLE ──
 function compBadge(c){
   if(!c)return'—';
-  const cls=(['PNM','PNF','NM3','NF3'].includes(c)?'bdg-nat':['R2M','R2F','R3M','R3F'].includes(c)?'bdg-reg':'bdg-dep');
+  const cls=(['PNM','PNF','NM3','NF3'].includes(c)?'bdg-nat':/^R/.test(c)?'bdg-reg':'bdg-dep');
   return`<span class="bdg ${cls}">${c}</span>`;
 }
 
@@ -1105,7 +1079,7 @@ function editMatch(id){
   const m=matchs.find(x=>x.id===id);if(!m)return;
   go('saisie',document.querySelectorAll('nav button')[0]);
   const set=(i,v)=>{const el=document.getElementById(i);if(el)el.value=(v==null?'':v);};
-  set('f-date',m.date);set('f-heure',m.heure);set('f-comp',m.competition);set('f-nr',m.rencontre);
+  set('f-date',m.date);set('f-heure',m.heure);setComp('f-comp',m.competition);set('f-nr',m.rencontre);
   set('f-dom',m.club_dom);set('f-ext',m.club_ext);set('f-lieu',m.lieu);set('f-km',m.km);set('f-indem',m.indem);
   set('f-col',m.collegue);set('f-contact',m.contact);set('f-pay',m.payeur);set('f-st',m.statut);set('f-notes',m.notes);
   document.getElementById('match-added').style.display='none';
@@ -1354,7 +1328,7 @@ async function handleFileObs(file){
     const b64=await resizeB64(file);
     const prompt=`This is a French basketball OBSERVER/EVALUATOR assignment letter. Read all text carefully.
 Output ONLY a raw JSON object, no markdown:
-{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or R2M or R2F or R3M or R3F or D1M or D1F or D2M or D2F or D3M or D3F or Autre","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"arbitre_observe":"name of referee being observed","payeur":"Ligue or Comite"}
+{"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or RM2 or RF2 or RM3 or RF3 or DM1 or DF1 or DM2 or DF2 or DM3 or DF3 or RMU21 or RFU21 or RMU17 or RFU17 or RMU15 or RFU15 or RMU13 or RFU13 or DMU17 or DFU17 or DMU15 or DFU15 or DMU13 or DFU13 or DMU11 or DFU11 or Autre","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"arbitre_observe":"name of referee being observed","payeur":"Ligue or Comite"}
 Use null for missing.`;
     const res=await ocrJSON(b64,prompt,m=>{document.getElementById('ocr-st-obs').innerHTML=m;});
     document.getElementById('ov').classList.remove('on');
@@ -1362,7 +1336,7 @@ Use null for missing.`;
     const d=res.d;
     if(d.date)document.getElementById('o-date').value=d.date;
     if(d.heure)document.getElementById('o-heure').value=d.heure;
-    if(d.competition)document.getElementById('o-comp').value=d.competition;
+    if(d.competition)setComp('o-comp',d.competition);
     if(d.club_dom)document.getElementById('o-dom').value=d.club_dom;
     if(d.club_ext)document.getElementById('o-ext').value=d.club_ext;
     if(d.salle_ville)document.getElementById('o-lieu').value=d.salle_ville;
