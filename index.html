@@ -340,10 +340,18 @@ canvas{width:100%!important;display:block}
 <!-- ══ BILAN MENSUEL ══ -->
 <div class="page" id="page-dash">
   <div class="mr">
-    <label>Mois :</label><select id="d-mo"></select>
-    <label>Année :</label><select id="d-yr"></select>
+    <label>Vue :</label>
+    <select id="d-per" onchange="renderDash()">
+      <option value="global">🌍 Global</option>
+      <option value="year">📅 Année</option>
+      <option value="month">🗓 Mois</option>
+    </select>
+    <span id="d-mo-wrap" style="display:none;align-items:center;gap:8px"><label>Mois :</label><select id="d-mo"></select></span>
+    <span id="d-yr-wrap" style="display:none;align-items:center;gap:8px"><label>Année :</label><select id="d-yr"></select></span>
   </div>
   <div class="stats" id="d-stats"></div>
+  <div class="card" id="d-bk-year" style="display:none"><div class="card-t">Détail par année</div><div class="tw"><table><thead><tr><th>Année</th><th>Matchs</th><th>Km</th><th>Total</th></tr></thead><tbody id="d-bk-year-body"></tbody></table></div></div>
+  <div class="card" id="d-bk-month" style="display:none"><div class="card-t" id="d-bk-month-t">Détail par mois</div><div class="tw"><table><thead><tr><th>Mois</th><th>Matchs</th><th>Km</th><th>Total</th></tr></thead><tbody id="d-bk-month-body"></tbody></table></div></div>
   <div class="card"><div class="card-t">Clubs arbitrés</div><div class="tags" id="d-clubs"></div></div>
   <div class="card"><div class="card-t">Collègues</div><div id="d-cols"></div></div>
   <div style="margin-top:6px"><button class="btn btn-grn" onclick="exportCSV()">⬇ Export CSV</button></div>
@@ -910,27 +918,58 @@ function buildVirementMoSelect(){
 }
 
 // ── DASHBOARD ──
-function getMonthMatchs(){
-  const mo=document.getElementById('d-mo').value,yr=String(document.getElementById('d-yr').value);
-  return matchs.filter(m=>m.date&&m.date.split('-')[0]===yr&&m.date.split('-')[1]===mo);
+function dPer(){return document.getElementById('d-per')?.value||'global';}
+function inPeriod(date){
+  if(!date)return false;
+  const per=dPer();if(per==='global')return true;
+  const[y,mo]=date.split('-');
+  const yr=String(document.getElementById('d-yr').value);
+  if(y!==yr)return false;
+  return per==='year'||mo===document.getElementById('d-mo').value;
+}
+function getMonthMatchs(){return matchs.filter(m=>inPeriod(m.date));}
+
+function bkRows(keyLen,list,obsList){
+  const b={};
+  const add=(d,fn)=>{if(!d)return;const k=d.slice(0,keyLen);(b[k]=b[k]||{n:0,km:0,tot:0});fn(b[k]);};
+  list.forEach(m=>add(m.date,x=>{x.n++;x.km+=m.km||0;x.tot+=m.indem||0;}));
+  if(obsInclus())obsList.forEach(o=>add(o.date,x=>{x.tot+=o.indem||0;}));
+  return Object.keys(b).sort().reverse().map(k=>({k,...b[k]}));
 }
 
 function renderDash(){
+  const per=dPer();
+  document.getElementById('d-mo-wrap').style.display=per==='month'?'flex':'none';
+  document.getElementById('d-yr-wrap').style.display=per==='global'?'none':'flex';
   const list=getMonthMatchs();
   const km=list.reduce((s,m)=>s+(m.km||0),0);
   const ind=list.reduce((s,m)=>s+(m.indem||0),0);
-  const mo=document.getElementById('d-mo').value, yr=String(document.getElementById('d-yr').value);
-  const obsExtra=obsInclus()?observations.filter(o=>o.date&&o.date.split('-')[0]===yr&&o.date.split('-')[1]===mo).reduce((s,o)=>s+(o.indem||0),0):0;
+  const obsList=observations.filter(o=>inPeriod(o.date));
+  const obsExtra=obsInclus()?obsList.reduce((s,o)=>s+(o.indem||0),0):0;
   const tot=Math.round((ind+obsExtra)*100)/100;
   const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.indem||0),0);
   const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.indem||0),0);
+  // Détails par année / par mois
+  const yrKey=String(document.getElementById('d-yr').value);
+  const mkRow=(label,r)=>`<tr><td>${label}</td><td>${r.n}</td><td>${r.km}</td><td><strong>${(Math.round(r.tot*100)/100).toFixed(2)}€</strong></td></tr>`;
+  const bkY=document.getElementById('d-bk-year'),bkM=document.getElementById('d-bk-month');
+  bkY.style.display=per==='global'?'block':'none';
+  bkM.style.display=per==='month'?'none':'block';
+  if(per==='global'){
+    document.getElementById('d-bk-year-body').innerHTML=bkRows(4,matchs,observations).map(r=>mkRow(r.k,r)).join('')||'<tr><td colspan="4">—</td></tr>';
+    document.getElementById('d-bk-month-t').textContent='Détail par mois';
+    document.getElementById('d-bk-month-body').innerHTML=bkRows(7,matchs,observations).map(r=>{const[y,m]=r.k.split('-');return mkRow(MONTHS[parseInt(m)-1]+' '+y,r);}).join('')||'<tr><td colspan="4">—</td></tr>';
+  }else if(per==='year'){
+    document.getElementById('d-bk-month-t').textContent='Détail par mois — '+yrKey;
+    document.getElementById('d-bk-month-body').innerHTML=bkRows(7,list,obsList).map(r=>{const[y,m]=r.k.split('-');return mkRow(MONTHS[parseInt(m)-1],r);}).join('')||'<tr><td colspan="4">—</td></tr>';
+  }
   document.getElementById('d-stats').innerHTML=`
     <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
     <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div></div>
     <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
     <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
-  document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.8rem">Aucun match ce mois</span>';
+  document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.8rem">Aucun match sur la période</span>';
   const cm={};list.forEach(m=>{if(m.collegue)cm[m.collegue]=(cm[m.collegue]||0)+1;});
   const cv=Object.entries(cm).sort((a,b)=>b[1]-a[1]),mx=cv[0]?.[1]||1;
   document.getElementById('d-cols').innerHTML=cv.length?cv.map(([n,c])=>`<div class="col-bar"><span class="nm">${n}</span><div class="bg"><div class="fill" style="width:${(c/mx)*100}%"></div></div><span class="cnt">${c}×</span></div>`).join(''):'<span style="color:var(--mut);font-size:.8rem">—</span>';
@@ -1181,7 +1220,7 @@ function clearAll(){
 // ── EXPORT CSV ──
 function exportCSV(){
   const list=getMonthMatchs();if(!list.length){toast('⚠️ Aucune donnée');return;}
-  const mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
+  const per=dPer(),mo=document.getElementById('d-mo').value,yr=document.getElementById('d-yr').value;
   const hdr=['Date','Heure','Compétition','N°','Domicile','Visiteur','Ville','Km','Indemnité (km inclus)','Collègue','Contact','Payeur','Statut'];
   const rows=list.map(m=>[fd(m.date),m.heure||'',m.competition||'',m.rencontre||'',m.club_dom||'',m.club_ext||'',m.lieu||'',m.km||0,(m.indem||0).toFixed(2),m.collegue||'',m.contact||'',m.payeur||'',m.statut==='paye'?'Payé':'En attente']);
   const totKm=list.reduce((s,m)=>s+(m.km||0),0),totI=list.reduce((s,m)=>s+(m.indem||0),0);
@@ -1189,7 +1228,7 @@ function exportCSV(){
   const csv='\uFEFF'+[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const u=URL.createObjectURL(b),a=document.createElement('a');
-  a.href=u;a.download=`arbitrage_${yr}_${mo}_${MONTHS[parseInt(mo)-1]}.csv`;a.click();URL.revokeObjectURL(u);
+  a.href=u;a.download=per==='global'?'arbitrage_global.csv':per==='year'?`arbitrage_${yr}.csv`:`arbitrage_${yr}_${mo}_${MONTHS[parseInt(mo)-1]}.csv`;a.click();URL.revokeObjectURL(u);
 }
 
 // ── THÈME ──
