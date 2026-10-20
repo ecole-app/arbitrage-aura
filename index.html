@@ -695,6 +695,21 @@ function parseConvoc(text){
     }
     arbs.push({nom:m[1].trim(),km_aller:km,indemnite:ind});
   }
+  // Contact : correspondant du club recevant (section A) + son téléphone (portable de préférence)
+  let contact='';
+  const iA=lines.findIndex(l=>/RECEVANT\s*:/i.test(l));
+  if(iA>=0){
+    let nm='',tel='';
+    for(let j=iA+1;j<Math.min(iA+5,lines.length);j++){
+      if(/VISITEUR\s*:|Adresse de la salle/i.test(lines[j]))break;
+      const c=lines[j].match(/Correspondant\s*:\s*(.+?)(?:\s+Maillot\s*:|$)/i);if(c&&!nm)nm=c[1].trim();
+      if(/T[ée]l[ée]phone/i.test(lines[j])&&!tel){
+        const po=lines[j].match(/Portable\s*:\s*([\d][\d .]{7,})/i),dm2=lines[j].match(/Domicile\s*:\s*([\d][\d .]{7,})/i);
+        tel=((po||dm2)||[,''])[1].trim();
+      }
+    }
+    contact=nm?(tel?nm+' — '+tel:nm):'';
+  }
   let warn='';
   const full=arbs.filter(a=>a.km_aller!=null&&a.indemnite!=null);
   if(full.length>=2){const bs=full.map(a=>a.indemnite-0.8*a.km_aller);if(Math.max(...bs)-Math.min(...bs)>0.05)warn='montants incohérents entre les arbitres, vérifie km et indemnité';}
@@ -708,7 +723,7 @@ function parseConvoc(text){
     club_ext:ext?balParen(ext[1]):'',
     salle_ville:ville,
     payeur:pay?pay[1].trim():'',
-    arbitres:arbs,_warn:warn
+    contact_dom:contact,arbitres:arbs,_warn:warn
   };
 }
 let _tessW=null,_tessLog=null;
@@ -749,7 +764,7 @@ function arbsComplete(d){return d.arbitres.length>0&&d.arbitres.every(a=>a.km_al
 function convocOK(d){return !!(d.date&&d.club_dom&&d.club_ext&&arbsComplete(d));}
 function mergeConvoc(a,b){
   const r={...a};
-  ['date','heure','num_rencontre','club_dom','club_ext','salle_ville','payeur','comp_raw'].forEach(k=>{if(!r[k]&&b[k])r[k]=b[k];});
+  ['date','heure','num_rencontre','club_dom','club_ext','salle_ville','payeur','comp_raw','contact_dom'].forEach(k=>{if(!r[k]&&b[k])r[k]=b[k];});
   if((!r.competition||r.competition==='Autre')&&b.competition)r.competition=b.competition;
   if(!arbsComplete(r)&&arbsComplete(b))r.arbitres=b.arbitres;
   else if(!r.arbitres.length&&b.arbitres.length)r.arbitres=b.arbitres;
