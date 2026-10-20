@@ -718,17 +718,30 @@ async function getTess(){
   if(!_tessW)_tessW=Tesseract.createWorker('fra',1,{langPath:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/fra@1.0.0/4.0.0_best_int',logger:m=>{if(_tessLog)_tessLog(m);}}).catch(e=>{_tessW=null;throw e;});
   return _tessW;
 }
-async function prepForOcr(file,scale=1.6){
-  // Agrandit en niveaux de gris (améliore la lecture des petits textes soulignés), plafonné à 3400 px
+async function prepForOcr(file,mode='base'){
+  // Agrandit x1.6 en niveaux de gris (plafonné à 3400 px). Modes de secours : 'sharp' (netteté) et 'bin' (noir et blanc),
+  // utiles pour les lignes soulignées/en gras que le mode de base lit parfois mal.
   try{
     const bmp=await createImageBitmap(file);
-    const long=Math.max(bmp.width,bmp.height),sc=Math.min(scale,3400/long);
+    const long=Math.max(bmp.width,bmp.height),sc=Math.min(1.6,3400/long);
     const c=document.createElement('canvas');
     c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
-    const ctx=c.getContext('2d');
+    const ctx=c.getContext('2d',{willReadFrequently:true});
     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     ctx.filter='grayscale(1)';
     ctx.drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
+    ctx.filter='none';
+    if(mode!=='base'){
+      const W=c.width,H=c.height,id=ctx.getImageData(0,0,W,H),d=id.data;
+      if(mode==='sharp'){
+        const src=new Uint8ClampedArray(d);
+        for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=(y*W+x)*4;
+          for(let k=0;k<3;k++){const v=5*src[i+k]-src[i-4+k]-src[i+4+k]-src[i-W*4+k]-src[i+W*4+k];d[i+k]=v<0?0:v>255?255:v;}}
+      }else{
+        for(let i=0;i<d.length;i+=4){const g=d[i]>115?255:0;d[i]=d[i+1]=d[i+2]=g;}
+      }
+      ctx.putImageData(id,0,0);
+    }
     return await new Promise(r=>c.toBlob(r,'image/png'));
   }catch(e){return file;}
 }
@@ -749,7 +762,7 @@ async function localOCR(file,onStatus){
     const w=await getTess();
     let best=null;
     // plusieurs passes à des échelles différentes : on ne continue que s'il manque encore une info
-    for(const sc of [1.6,2.2,1.0]){
+    for(const sc of ['base','sharp','bin']){
       _tessLog=m=>{if(m.status==='recognizing text'&&onStatus)onStatus('<span class="sp-sm"></span> Lecture… '+Math.round((m.progress||0)*100)+' %'+(best?' (2e passe)':''));};
       const img=await prepForOcr(file,sc);
       const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
@@ -823,6 +836,7 @@ Use null for missing.`;
     if(d.collegue)document.getElementById('f-col').value=d.collegue;
     if(d.contact_dom)document.getElementById('f-contact').value=d.contact_dom;
     if(d.payeur){d.payeur=normPayeur(d.payeur);document.getElementById('f-pay').value=d.payeur;}
+    if(d.competition==='Autre'&&d.comp_raw)document.getElementById('f-notes').value=d.comp_raw;
 
     if(d.date&&d.club_dom){
       autoSave(d,url);
