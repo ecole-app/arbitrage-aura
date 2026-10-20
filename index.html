@@ -500,6 +500,17 @@ canvas{width:100%!important;display:block}
   </div>
 
   <div class="card">
+    <div class="card-t">💾 Sauvegarde</div>
+    <p style="font-size:.76rem;color:var(--mut);margin-bottom:12px">Exporte tout (matchs, observations, virements, profil, réglages et images des convocations) dans un fichier. Utile pour changer d'adresse ou de téléphone : tu restaures le fichier sur le nouvel appareil.</p>
+    <div class="row">
+      <button class="btn btn-acc" onclick="exportBackup()">⬇ Sauvegarder</button>
+      <button class="btn btn-g" onclick="document.getElementById('file-restore').click()">⬆ Restaurer</button>
+    </div>
+    <input type="file" id="file-restore" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)">
+    <div id="backup-st" style="font-size:.78rem;color:var(--mut);margin-top:10px"></div>
+  </div>
+
+  <div class="card">
     <div class="card-t">🗑 Données</div>
     <p style="font-size:.76rem;color:var(--mut);margin-bottom:12px">Stockées localement sur cet appareil.</p>
     <button class="btn btn-red" onclick="clearAll()">Effacer toutes les données</button>
@@ -1399,8 +1410,48 @@ function saveRates(){
   COMPS.forEach(c=>{const el=document.getElementById('cr-'+c);if(el&&el.value)cfg.rates[c]=parseFloat(el.value);});
   localStorage.setItem(CK,JSON.stringify(cfg));toast('✅ Barèmes sauvegardés');
 }
+async function imgAll(){try{const db=await idb();return await new Promise((res,rej)=>{const st=db.transaction('imgs').objectStore('imgs'),out=[];const q=st.openCursor();q.onsuccess=()=>{const c=q.result;if(c){out.push({id:c.key,blob:c.value});c.continue();}else res(out);};q.onerror=()=>rej(q.error);});}catch(e){return[];}}
+async function imgClear(){try{const db=await idb();await new Promise(res=>{const t=db.transaction('imgs','readwrite');t.objectStore('imgs').clear();t.oncomplete=res;t.onerror=res;});}catch(e){}}
+const blobToDataUrl=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b);});
+
+async function exportBackup(){
+  const st=document.getElementById('backup-st');
+  try{
+    st.textContent='Préparation de la sauvegarde…';
+    const imgs=[];
+    for(const {id,blob} of await imgAll())imgs.push({id,type:blob.type||'image/png',data:await blobToDataUrl(blob)});
+    const data={app:'arbitrage-aura',version:1,date:new Date().toISOString(),matchs,observations,virements,cfg,profil,imgs};
+    const b=new Blob([JSON.stringify(data)],{type:'application/json'});
+    const u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download='arbitrage-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+    setTimeout(()=>URL.revokeObjectURL(u),4000);
+    st.textContent='✅ Sauvegarde téléchargée : '+matchs.length+' matchs, '+observations.length+' observations, '+virements.length+' virements, '+imgs.length+' image(s).';
+  }catch(e){st.textContent='⚠️ Sauvegarde impossible : '+(e.message||e);}
+}
+async function restoreBackup(inp){
+  const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  const st=document.getElementById('backup-st');
+  try{
+    const data=JSON.parse(await f.text());
+    if(data.app!=='arbitrage-aura'||!Array.isArray(data.matchs))throw new Error('fichier non reconnu');
+    const ni=(data.imgs||[]).length;
+    if(!confirm('Restaurer cette sauvegarde ?\n\n'+data.matchs.length+' matchs, '+(data.observations||[]).length+' observations, '+(data.virements||[]).length+' virements, '+ni+' image(s).\n\nLes données actuelles de cet appareil seront REMPLACÉES.'))return;
+    st.textContent='Restauration…';
+    localStorage.setItem(SK,JSON.stringify(data.matchs));
+    localStorage.setItem('arb_obs',JSON.stringify(data.observations||[]));
+    localStorage.setItem(VK,JSON.stringify(data.virements||[]));
+    if(data.cfg)localStorage.setItem(CK,JSON.stringify(data.cfg));
+    if(data.profil)localStorage.setItem(PK,JSON.stringify(data.profil));
+    await imgClear();
+    for(const im of (data.imgs||[])){const blob=await (await fetch(im.data)).blob();await imgPut(im.id,blob);}
+    st.textContent='✅ Restauré. Rechargement…';
+    setTimeout(()=>location.reload(),700);
+  }catch(e){st.textContent='⚠️ Restauration impossible : '+(e.message||e);}
+}
+
 function clearAll(){
   if(!confirm('Effacer TOUTES les données ?'))return;
+  imgClear();
   [SK,CK,PK,VK,'arb_obs'].forEach(k=>localStorage.removeItem(k));
   matchs=[];virements=[];observations=[];cfg={rates:{...DEF_RATES}};profil={prenom:'',nom:'',nivM:'PNM',nivF:'PNF',region:'AURA'};
   save();renderVirements();updateBarTitle();toast('Données effacées');
