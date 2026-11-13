@@ -531,19 +531,107 @@ function cleanTxt(s){
   /* les préfixes de période (« Q2 – ») ajoutés automatiquement ne comptent pas */
   return String(s||'').replace(/(^|\n)[ \t]*(Q[1-4]|Prol\.)\s[–-]\s*/g,'$1').replace(/\s+/g,' ').trim();
 }
+/* Détection du charabia : un vrai commentaire contient surtout des mots français connus et des mots prononçables. */
+var FRW=("le la les un une des du de d l au aux ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs "+
+"je tu il elle on nous vous ils elles me te se lui y en qui que quoi dont où ou et mais donc or ni car si comme quand lorsque puisque "+
+"dans sur sous avec sans pour par vers chez entre contre après avant pendant depuis jusque selon malgré environ devant derrière près loin "+
+"ne pas plus moins très trop assez peu bien mal mieux pire tout tous toute toutes rien jamais toujours souvent parfois encore déjà aussi "+
+"même autre autres tel tels quel quelle quelques chaque plusieurs aucun aucune certain certains seul seule beaucoup "+
+"est es suis sommes êtes sont était étaient fut été être sera seront serait soit soient ai as a avons avez ont avait avaient avoir aura auront aurait "+
+"fait fais font faire faisait fera faut faudrait peut peux peuvent pouvait pouvoir doit doivent devrait devoir veut veulent vouloir sait savoir voit voir vu "+
+"va vais vont aller allait vient viennent venir dit dire met mettre mis prend prendre pris donne donner laisse laisser laissé passe passer reste rester "+
+"pense penser semble sembler trouve trouver manque manquer apparaît parait paraît reste "+
+"arbitre arbitres arbitrage arbitré arbitrer match matchs rencontre jeu joueur joueurs joueuse joueuses équipe équipes entraîneur entraineur coach banc table marque marqueur chrono chronomètre "+
+"faute fautes sifflet siffle siffler sifflé sifflés coup contact contacts charge blocage bloquer écran écrans dribble dribbles reprise marcher marchers pas pied pieds "+
+"tir tirs panier paniers lancer lancers franc francs ballon balle passe passes rebond rebonds drive drives défense défenses défensif défensive attaque attaques attaquant "+
+"violation violations temps mort temps-mort remise touche touches entre-deux entre deux trois quatre cinq secondes seconde minutes minute période périodes quart quarts prolongation "+
+"antisportif antisportive technique disqualifiante comportement comportements attitude réaction réactions geste gestes parole paroles banc coachs "+
+"zone zones terrain ligne lignes cercle raquette trapèze bonus pénalité arrêt arrêts jeu-dangereux dangereux dangereuse "+
+"position positionnement placement placé placée placés déplacement déplacements couverture couvrir couvre rotation rotations transition transitions "+
+"communication communique communiquer coéquipier coéquipiers partenaire collègue collègues binôme binome "+
+"décision décisions décide décider décidé jugement jugé jugés jugée juger appréciation appréciations critère critères "+
+"cohérence cohérent cohérente constant constante régulier régulière rigueur rigoureux autorité autoritaire calme sérieux sérieuse "+
+"bon bonne bons bonnes beau belle mauvais mauvaise petit petite grand grande gros grosse long longue court courte premier première dernier dernière "+
+"gestion géré gérée gérer contrôle contrôlé contrôler maîtrise maîtrisé maîtriser tolérance tolérant tolérante laxiste pointilleux sévère "+
+"trop-tard tard tôt vite lent lente rapide rapidement lentement vraiment clairement directement systématiquement souvent "+
+"manière façon cas fois chose choses point points ligne exemple exemples minute fin début milieu côté côtés "+
+"sur-le-terrain vers-la-fin besoin besoins travailler travail travaille travaillé améliorer amélioration améliorations progresser progression progrès "+
+"expliquer explique expliqué explication anticiper anticipe anticipation appliquer applique appliqué respecter respecte respecté "+
+"important importante importants nécessaire utile possible impossible difficile facile "+
+"observer observé observation observateur observateurs évaluer évaluation évalué examen "+
+"hésite hésiter hésitation hésitant manque manqué oublie oublier oublié rate rater raté loupe louper loupé "+
+"ok oui non voilà alors ainsi puis ensuite enfin notamment surtout seulement uniquement peut-être "+
+"quand-il quand-elle sur-les sur-la sur-le dans-le dans-la à ça cela ceci celui celle ceux celles ici là là-bas "+
+"un-peu un-seul ne-pas n-a c est-ce c'est qu'il qu'elle l'arbitre d'un d'une n'est n'a j'ai "+
+"mi-temps match-nul score points panier-marqué faute-technique mouvement mouvements prise prises main mains bras jambe jambes corps épaule épaules tête "+
+"joue jouer joué jouent joueur pousse pousser poussé tient tenir tenu tire tirer tiré saute sauter sauté court courir couru marche marché "+
+"sort sortir sorti entre entrer entré reçoit recevoir reçu redonne rend rendre rendu "+
+"toujours-pas pas-assez trop-souvent bien-placé mal-placé "+
+"u9 u11 u13 u15 u17 u18 u20 u21 sg sf sm pre région départemental départementale nationale poule division "+
+"semaine jour jours soir matin saison journée tournoi championnat coupe").split(/\s+/).filter(Boolean);
+var FRSET={};
+FRW.forEach(function(w){FRSET[w.replace(/[-']/g,'')]=1;FRW.length;});
+function foldW(w){return w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+var FRFOLD={};Object.keys(FRSET).forEach(function(w){FRFOLD[foldW(w)]=1;});
+var FR_CC={};
+('bl br ch cl cr ct dr fl fr gl gn gr ph pl pr rt rs rd rc rm rn rl rb rg rp rf rv rq rr sc sp st sq sl sm sn sb sd sf sg sk sh tr th ts tc tt nt nd ns nc nf ng nq nj nm nn mp mb mm lt ld ls lp lm lf lc lb lg lq lv ll lk ss ff pp cc dd gg bb xc xp xt xh wr vr ck kr kn dj ds bs bt gt gm gs pt ps pn mn cq rk nk ks ft tl dl bj').split(' ').forEach(function(x){FR_CC[x]=1;});
+var VOW='aeiouy';
+function wordKnown(w){
+  var f=foldW(w);
+  if(FRFOLD[f])return true;
+  var s=['s','x','e','es','ent','er','ez','ons','ee','ees','a','ait','ais','ant','ie','ment','e','ees','ent','ant'];
+  for(var i=0;i<s.length;i++){
+    if(f.length>s[i].length+2&&f.slice(-s[i].length)===s[i]&&FRFOLD[f.slice(0,-s[i].length)])return true;
+  }
+  if(f.length>5&&f.slice(-2)==='es'&&FRFOLD[f.slice(0,-2)+'er'])return true;
+  if(f.length>4&&(f.slice(-1)==='e'||f.slice(-1)==='s')&&FRFOLD[f.slice(0,-1)+'er'])return true;
+  if(f.length>4&&f.slice(-1)==='e'&&FRFOLD[f.slice(0,-1)+'r'])return true;
+  return false;
+}
+function wordBad(w){
+  var f=foldW(w).replace(/[^a-z]/g,'');
+  if(!f)return false;
+  if(f.length===1)return !/^[aày]$/.test(f);
+  if(f.length>=3&&!/[aeiouy]/.test(f))return true;
+  if(f.length>=17)return true;
+  if(/(.)\1\1/.test(f))return true;                 // lll
+  if(/[^aeiouy]{4,}/.test(f))return true;           // 4 consonnes d'affilée
+  for(var i=0;i<f.length-1;i++){
+    var a=f[i],b=f[i+1];
+    if(VOW.indexOf(a)<0&&VOW.indexOf(b)<0&&!FR_CC[a+b])return true;
+  }
+  if(/[kwzxj]/.test(f)&&(f.match(/[kwzxj]/g).length>=2)&&!wordKnown(w))return true;
+  if(/q(?!u)/.test(f))return true;
+  /* trop de lettres rares, ou presque pas de voyelles */
+  var v=(f.match(/[aeiouy]/g)||[]).length;
+  if(f.length>=6&&v/f.length<0.25)return true;
+  /* alternance de 2 lettres en boucle (akakak) */
+  if(/^(?:([a-z])([a-z]))\1\2/.test(f)||/([a-z]{2})\1\1/.test(f))return true;
+  return false;
+}
+function gibberish(c){
+  var toks=c.split(/[^A-Za-zÀ-ÖØ-öø-ÿ'’0-9-]+/).filter(Boolean).map(function(t){return t.replace(/^['’-]+|['’-]+$/g,'');}).filter(Boolean);
+  var words=[];
+  toks.forEach(function(t){t.split(/['’]/).forEach(function(x){if(x)words.push(x);});});
+  words=words.filter(function(w){return /[A-Za-zÀ-ÖØ-öø-ÿ]/.test(w);});
+  if(words.length<5)return true;
+  var known=0,bad=0,seen={},uniq=0;
+  words.forEach(function(w){
+    var k=w.toLowerCase();if(!seen[k]){seen[k]=1;uniq++;}
+    if(wordKnown(w))known++;else if(wordBad(w))bad++;
+  });
+  if(uniq<4)return true;
+  if(bad/words.length>0.2)return true;
+  if(known/words.length<0.3)return true;
+  /* le même mot en boucle */
+  var top=0,cnt={};words.forEach(function(w){var k=w.toLowerCase();cnt[k]=(cnt[k]||0)+1;if(cnt[k]>top)top=cnt[k];});
+  if(top/words.length>0.5)return true;
+  return false;
+}
 function txtCheck(s){
   var c=cleanTxt(s), len=c.length;
   if(len<MINC)return {ok:false,len:len,msg:len+' / '+MINC};
-  /* pas de bouillie : de vrais mots, pas la même lettre ou le même mot en boucle */
-  var words=c.split(' ').filter(function(w){return (w.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g)||[]).length>=2;});
-  var dw={}; words.forEach(function(w){dw[w.toLowerCase()]=1;});
-  var dl={}; c.toLowerCase().replace(/[^a-zà-ÿ]/g,'').split('').forEach(function(ch){dl[ch]=1;});
-  /* un clavier écrasé (« qsdfghjklm wxcvbn ») n'a presque jamais de voyelles dans ses mots */
-  var lw=words.filter(function(w){return (w.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g)||[]).length>=3;});
-  var withV=lw.filter(function(w){return /[aeiouyàâäéèêëîïôöùûüœ]/i.test(w);}).length;
-  if(words.length<5||Object.keys(dw).length<4||Object.keys(dl).length<7||lw.length<3||withV/lw.length<0.75){
-    return {ok:false,len:len,msg:len+' / '+MINC+' · écris une vraie phrase'};
-  }
+  if(gibberish(c))return {ok:false,len:len,msg:len+' / '+MINC+' · écris une vraie phrase'};
   return {ok:true,len:len,msg:len+' / '+MINC+' ✓'};
 }
 function itemOk(p,id){return txtCheck(p.n[id]).ok&&txtCheck(p.a[id]).ok;}
