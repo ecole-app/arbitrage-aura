@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
+<script>try{var t=localStorage.getItem("fiche-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Fiche observation EAD</title>
@@ -52,6 +53,8 @@
 [hidden]{display:none!important}
 html,body{margin:0}
 [hidden]{display:none!important}
+.thb{flex:none;width:40px;height:40px;border:0;border-radius:8px;background:rgba(255,255,255,.1);color:var(--ink-fg);font-size:18px;cursor:pointer}
+.pwd{position:relative}.pwd input{padding-right:48px}.pwd .eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:none;color:var(--muted);font-size:17px;cursor:pointer}
 .acc{display:grid;gap:12px;padding:16px}
 .acc .who2{margin:0;font-size:14px;color:var(--fg);overflow-wrap:anywhere}
 body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--font-body);-webkit-text-size-adjust:100%}
@@ -268,6 +271,7 @@ button{font-family:inherit}
         <span class="t">Fiche EAD</span>
         <span class="sub"><span id="prog">0 / 24 notés</span><span class="st" title="Enregistrement sur cet appareil"><span class="dot" id="dot" data-ok="1"></span>Local</span><span class="st" title="Enregistrement sur le site"><span class="dot" id="dotsite" data-ok="x"></span>Site</span></span>
       </div>
+      <button type="button" class="thb" id="thb" aria-label="Mode clair / sombre">◐</button>
       <div class="gauge" id="gauge" data-state="ok" aria-live="polite">
         <span class="gl">Insuffisants grisés</span>
         <span class="gn" id="gn">0 / 3</span>
@@ -1690,6 +1694,8 @@ function paintAccount(){
 function buildAccount(){
   var em=h('input',{type:'email',autocomplete:'email',inputmode:'email',autocapitalize:'off',autocorrect:'off',spellcheck:'false','aria-label':'Adresse e-mail',placeholder:'adresse e-mail'});
   var pw=h('input',{type:'password',autocomplete:'current-password','aria-label':'Mot de passe',placeholder:'mot de passe (6 caractères min.)'});
+  var eye=h('button',{type:'button',class:'eye','aria-label':'Afficher le mot de passe',text:'👁'});
+  eye.addEventListener('click',function(){var v=pw.type==='password';pw.type=v?'text':'password';eye.setAttribute('aria-label',v?'Masquer le mot de passe':'Afficher le mot de passe');eye.textContent=v?'🙈':'👁';});
   var msg=h('p',{class:'status','aria-live':'polite'});
   var inBtn=h('button',{type:'button',class:'btn',text:'Se connecter'});
   var upBtn=h('button',{type:'button',class:'btn ghost',text:'Créer un compte'});
@@ -1698,11 +1704,23 @@ function buildAccount(){
   var who=h('p',{class:'who2'});
   var cnt=h('span',{class:'cnt'});
   var info=h('p',{class:'status',style:'padding:16px'});
+  var mfa=null;
+  var codeIn=h('input',{type:'text',inputmode:'numeric',autocomplete:'one-time-code',maxlength:'6','aria-label':'Code à 6 chiffres',placeholder:'code à 6 chiffres'});
+  var codeBtn=h('button',{type:'button',class:'btn',text:'Valider le code'});
+  var codeBox=h('div',{class:'acc',hidden:true,style:'padding:0'},[h('p',{class:'legend',text:"Double authentification : ouvre ton application d'authentification et saisis le code à 6 chiffres."}),h('div',{class:'f'},[codeIn]),codeBtn]);
+  codeBtn.addEventListener('click',function(){
+    if(!mfa)return;
+    msg.textContent='…';codeBtn.disabled=true;
+    mfa.finish(codeIn.value.trim()).then(function(){mfa=null;codeIn.value='';codeBox.hidden=true;msg.textContent='';},function(e){
+      msg.textContent=(e&&e.code==='auth/invalid-verification-code')?"Code incorrect.":"Code refusé ("+((e&&e.code)||'?')+"). Réessaie.";
+    }).then(function(){codeBtn.disabled=false;});
+  });
   function run(fn,ok){
     if(!Cloud){msg.textContent="Site injoignable pour le moment.";return;}
     msg.textContent='…';inBtn.disabled=upBtn.disabled=true;
     fn().then(function(){pw.value='';msg.textContent=ok||'';},function(e){
-      msg.textContent=AUTH_ERR[e&&e.code]||"Connexion impossible pour le moment. Réessaie.";
+      if(e&&e.code==='mfa'){mfa=e;codeBox.hidden=false;codeIn.focus();msg.textContent='';return;}
+      msg.textContent=AUTH_ERR[e&&e.code]||("Connexion impossible ("+((e&&e.code)||'?')+"). Réessaie.");
     }).then(function(){inBtn.disabled=upBtn.disabled=false;});
   }
   inBtn.addEventListener('click',function(){run(function(){return Cloud.signIn(em.value.trim(),pw.value);});});
@@ -1715,9 +1733,9 @@ function buildAccount(){
   outBtn.addEventListener('click',function(){if(Cloud)Cloud.signOut();});
   var form=h('div',{class:'acc'},[
     h('p',{class:'legend',text:"Connecte-toi pour retrouver tes fiches sur téléphone et sur ordinateur. Sans compte, tout reste sur cet appareil."}),
-    h('div',{class:'f'},[em]),h('div',{class:'f'},[pw]),
+    h('div',{class:'f'},[em]),h('div',{class:'f pwd'},[pw,eye]),
     h('div',{class:'btnrow'},[inBtn,upBtn]),
-    h('div',{class:'btnrow'},[rsBtn]),msg
+    h('div',{class:'btnrow'},[rsBtn]),codeBox,msg
   ]);
   var user=h('div',{class:'acc'},[h('p',{class:'who2'},['Connecté : ',who]),h('div',{class:'btnrow'},[outBtn])]);
   R.acc={form:form,user:user,info:info,who:who,cnt:cnt};
@@ -1842,6 +1860,13 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 window.addEventListener('pagehide',flush);
 
 mount();
+(function(){
+  var b=document.getElementById('thb');if(!b)return;
+  function cur(){var t=document.documentElement.getAttribute('data-theme');if(t)return t;return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  function paint(){b.textContent=cur()==='dark'?'☀':'☾';b.title=cur()==='dark'?'Passer en clair':'Passer en sombre';}
+  b.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('fiche-theme',n);}catch(e){}paint();});
+  paint();
+})();
 
 /* enregistrement sur le site : compte de l'observateur (Firebase), fiches lues et écrites par lui seul */
 function cloudInit(){
