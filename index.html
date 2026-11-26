@@ -519,7 +519,7 @@ canvas{width:100%!important;display:block}
 
 </main>
 <script>
-const OR_KEY=["sk-or-v1-fb2133c6cec2e24fa49f1fb3","8a5d121b2979eadc557a61dd0801f12c8e8b19e7"].join("");
+const OR_KEY="";
 const OR_URL="https://openrouter.ai/api/v1/chat/completions";
 const COMP_GROUPS=[
   ['🏆 National',['PNM','PNF','NM3','NF3']],
@@ -783,7 +783,7 @@ function mergeConvoc(a,b){
   r._warn=r.arbitres.length?b._warn&&!arbsComplete(r)?b._warn:r._warn:'';
   return r;
 }
-async function localOCR(file,onStatus){
+async function localOCR(file,onStatus,partial){
   try{
     onStatus&&onStatus('<span class="sp-sm"></span> Lecture sur ton téléphone… (le 1er import télécharge le module, ~5 s de plus)');
     const w=await getTess();
@@ -795,8 +795,9 @@ async function localOCR(file,onStatus){
       const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
       const d=parseConvoc(out.data.text);
       best=best?mergeConvoc(best,d):d;
-      if(convocOK(best))break;
+      if(partial?(best.date&&best.club_dom&&best.heure):convocOK(best))break;
     }
+    if(partial){if(!best.date&&!best.club_dom)return{err:'Lecture locale incomplète'};return{d:best,model:'OCR local',warn:best._warn};}
     if(!best.date||!best.club_dom||!best.arbitres.length)return{err:'Lecture locale incomplète'};
     return{d:best,model:'OCR local',warn:best._warn};
   }catch(e){return{err:'Lecture locale impossible'};}
@@ -918,6 +919,7 @@ async function resizeB64(file,maxPx=1280,quality=0.7){
 }
 
 async function ocrJSON(b64,prompt,onRetry){
+  if(!OR_KEY)return{err:'Lecture IA indisponible (clé expirée)'};
   const PRIMARY_MODELS=["qwen/qwen3.8-27b:free","google/gemma-4-26b-a4b-it:free"];
   const attempt=async(extra)=>{
     const ctrl=new AbortController();
@@ -1499,15 +1501,35 @@ async function handleFileObs(file){
   document.getElementById('ocr-st-obs').innerHTML='<span class="sp-sm"></span> Lecture…';
   document.getElementById('ov').classList.add('on');
   try{
-    const b64=await resizeB64(file);
-    const prompt=`This is a French basketball OBSERVER/EVALUATOR assignment letter. Read all text carefully.
+    let res=await localOCR(file,m=>{document.getElementById('ocr-st-obs').innerHTML=m;},true);
+    if(!res.d){
+      document.getElementById('ocr-st-obs').innerHTML='<span class="sp-sm"></span> Lecture par IA…';
+      const b64=await resizeB64(file);
+      const prompt=`This is a French basketball OBSERVER/EVALUATOR assignment letter. Read all text carefully.
 Output ONLY a raw JSON object, no markdown:
 {"date":"YYYY-MM-DD","heure":"HH:MM","competition":"PNM or PNF or NM3 or NF3 or RM2 or RF2 or RM3 or RF3 or DM1 or DF1 or DM2 or DF2 or DM3 or DF3 or RMU21 or RFU21 or RMU17 or RFU17 or RMU15 or RFU15 or RMU13 or RFU13 or DMU17 or DFU17 or DMU15 or DFU15 or DMU13 or DFU13 or DMU11 or DFU11 or Autre","club_dom":"home club","club_ext":"away club","salle_ville":"venue city","km_aller":number,"indemnite":number,"arbitre_observe":"name of referee being observed","payeur":"Ligue or Comite"}
 Use null for missing.`;
-    const res=await ocrJSON(b64,prompt,m=>{document.getElementById('ocr-st-obs').innerHTML=m;});
+      res=await ocrJSON(b64,prompt,m=>{document.getElementById('ocr-st-obs').innerHTML=m;});
+    }
     document.getElementById('ov').classList.remove('on');
     if(!res.d){document.getElementById('ocr-st-obs').innerHTML='⚠️ '+res.err+' — remplis manuellement ou réessaie';return;}
     const d=res.d;
+    if(Array.isArray(d.arbitres)&&d.arbitres.length){
+      const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const keys=[profil.nom,profil.prenom].map(norm).map(x=>x.trim()).filter(Boolean);
+      const arbs=d.arbitres.filter(a=>a&&a.nom);
+      let idx=arbs.findIndex(a=>keys.length&&keys.every(k=>norm(a.nom).includes(k)));
+      if(idx<0)idx=arbs.findIndex(a=>keys.length&&keys.some(k=>norm(a.nom).includes(k)));
+      if(idx>=0){
+        if(arbs[idx].km_aller!=null)d.km_aller=arbs[idx].km_aller;
+        if(arbs[idx].indemnite!=null)d.indemnite=arbs[idx].indemnite;
+        const others=arbs.filter((_,i)=>i!==idx).map(a=>a.nom);
+        if(others.length&&!d.arbitre_observe)d.arbitre_observe=others.join(', ');
+      }else if(arbs.length===1){
+        if(arbs[0].km_aller!=null)d.km_aller=arbs[0].km_aller;
+        if(arbs[0].indemnite!=null)d.indemnite=arbs[0].indemnite;
+      }
+    }
     if(d.date)document.getElementById('o-date').value=d.date;
     if(d.heure)document.getElementById('o-heure').value=d.heure;
     if(d.competition)setComp('o-comp',d.competition);
@@ -1518,7 +1540,8 @@ Use null for missing.`;
     if(d.indemnite!=null)document.getElementById('o-indem').value=d.indemnite;
     if(d.arbitre_observe)document.getElementById('o-arbitre').value=d.arbitre_observe;
     if(d.payeur){d.payeur=normPayeur(d.payeur);document.getElementById('o-pay').value=d.payeur;}
-    document.getElementById('ocr-st-obs').innerHTML='✅ Analyse terminée — vérifie et enregistre';
+    const miss=[];if(!d.date)miss.push('date');if(!d.club_dom)miss.push('club');if(d.km_aller==null)miss.push('km');if(d.indemnite==null)miss.push('indemnité');if(!d.arbitre_observe)miss.push('arbitre observé');
+    document.getElementById('ocr-st-obs').innerHTML='✅ Lu par '+(res.model||'IA')+' — vérifie'+(miss.length?' · ⚠️ à compléter : '+miss.join(', '):'')+' puis enregistre';
   }catch(e){
     document.getElementById('ov').classList.remove('on');
     document.getElementById('ocr-st-obs').innerHTML='⚠️ Analyse impossible — saisie manuelle';
