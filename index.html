@@ -309,8 +309,9 @@ canvas{width:100%!important;display:block}
     <span id="d-yr-wrap" style="display:none;align-items:center;gap:8px"><label>Année :</label><select id="d-yr"></select></span>
   </div>
   <div class="stats" id="d-stats"></div>
-  <div class="card" id="d-bk-year" style="display:none"><div class="card-t">Détail par année</div><div class="tw"><table><thead><tr><th>Année</th><th>Matchs</th><th>Km</th><th>Total</th></tr></thead><tbody id="d-bk-year-body"></tbody></table></div></div>
-  <div class="card" id="d-bk-month" style="display:none"><div class="card-t" id="d-bk-month-t">Détail par mois</div><div class="tw"><table><thead><tr><th>Mois</th><th>Matchs</th><th>Km</th><th>Total</th></tr></thead><tbody id="d-bk-month-body"></tbody></table></div></div>
+  <div class="card" id="d-bk-year" style="display:none"><div class="card-t">Détail par année</div><div class="tw"><table><thead><tr><th>Année</th><th>Matchs</th><th>Obs.</th><th>Total</th></tr></thead><tbody id="d-bk-year-body"></tbody></table></div></div>
+  <div class="card" id="d-bk-month" style="display:none"><div class="card-t" id="d-bk-month-t">Détail par mois</div><div class="tw"><table><thead><tr><th>Mois</th><th>Matchs</th><th>Obs.</th><th>Total</th></tr></thead><tbody id="d-bk-month-body"></tbody></table></div></div>
+  <div class="card"><div class="card-t">Déroulé de la période</div><div id="d-detail"></div></div>
   <div class="card"><div class="card-t">Clubs arbitrés</div><div class="tags" id="d-clubs"></div></div>
   <div class="card"><div class="card-t">Collègues</div><div id="d-cols"></div></div>
   <div style="margin-top:6px"><button class="btn btn-grn" onclick="exportCSV()">⬇ Export CSV</button></div>
@@ -454,7 +455,7 @@ canvas{width:100%!important;display:block}
     <div class="card-t">Historique observations</div>
     <div class="row" style="margin-bottom:12px">
       <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
-        <input type="checkbox" id="obs-inclure" style="accent-color:var(--pur)" onchange="renderDash();renderStats()">
+        <input type="checkbox" id="obs-inclure" checked style="accent-color:var(--pur)" onchange="renderDash();renderStats()">
         Inclure dans le bilan mensuel / annuel
       </label>
     </div>
@@ -1077,9 +1078,9 @@ function getMonthMatchs(){return matchs.filter(m=>inPeriod(m.date));}
 
 function bkRows(keyLen,list,obsList){
   const b={};
-  const add=(d,fn)=>{if(!d)return;const k=d.slice(0,keyLen);(b[k]=b[k]||{n:0,km:0,tot:0});fn(b[k]);};
-  list.forEach(m=>add(m.date,x=>{x.n++;x.km+=m.km||0;x.tot+=m.indem||0;}));
-  if(obsInclus())obsList.forEach(o=>add(o.date,x=>{x.tot+=o.indem||0;}));
+  const add=(d,fn)=>{if(!d)return;const k=d.slice(0,keyLen);(b[k]=b[k]||{n:0,km:0,mt:0,no:0,ot:0,tot:0});fn(b[k]);};
+  list.forEach(m=>add(m.date,x=>{x.n++;x.km+=m.km||0;x.mt+=m.indem||0;x.tot+=m.indem||0;}));
+  obsList.forEach(o=>add(o.date,x=>{x.no++;x.ot+=o.indem||0;if(obsInclus())x.tot+=o.indem||0;}));
   return Object.keys(b).sort().reverse().map(k=>({k,...b[k]}));
 }
 
@@ -1093,11 +1094,13 @@ function renderDash(){
   const obsList=observations.filter(o=>inPeriod(o.date));
   const obsExtra=obsInclus()?obsList.reduce((s,o)=>s+(o.indem||0),0):0;
   const tot=Math.round((ind+obsExtra)*100)/100;
-  const paye=list.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.indem||0),0);
-  const att=list.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.indem||0),0);
+  const pool=obsInclus()?[...list,...obsList]:list;
+  const paye=pool.filter(m=>m.statut==='paye').reduce((s,m)=>s+(m.indem||0),0);
+  const att=pool.filter(m=>m.statut==='attente').reduce((s,m)=>s+(m.indem||0),0);
   // Détails par année / par mois
   const yrKey=String(document.getElementById('d-yr').value);
-  const mkRow=(label,r)=>`<tr><td>${label}</td><td>${r.n}</td><td>${r.km}</td><td><strong>${(Math.round(r.tot*100)/100).toFixed(2)}€</strong></td></tr>`;
+  const f2=v=>(Math.round(v*100)/100).toFixed(2);
+  const mkRow=(label,r)=>`<tr><td>${label}</td><td>${r.n} · ${f2(r.mt)}€</td><td>${r.no} · ${f2(r.ot)}€</td><td><strong>${f2(r.tot)}€</strong></td></tr>`;
   const bkY=document.getElementById('d-bk-year'),bkM=document.getElementById('d-bk-month');
   bkY.style.display=per==='global'?'block':'none';
   bkM.style.display=per==='month'?'none':'block';
@@ -1109,11 +1112,20 @@ function renderDash(){
     document.getElementById('d-bk-month-t').textContent='Détail par mois — '+yrKey;
     document.getElementById('d-bk-month-body').innerHTML=bkRows(7,list,obsList).map(r=>{const[y,m]=r.k.split('-');return mkRow(MONTHS[parseInt(m)-1],r);}).join('')||'<tr><td colspan="4">—</td></tr>';
   }
+  const obsInd=obsList.reduce((s,o)=>s+(o.indem||0),0);
   document.getElementById('d-stats').innerHTML=`
-    <div class="stat"><div class="lbl">Matchs</div><div class="val c-b">${list.length}</div></div>
-    <div class="stat"><div class="lbl">Km aller</div><div class="val c-y">${km}</div></div>
-    <div class="stat"><div class="lbl">Indemnités</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
-    <div class="stat"><div class="lbl">Total net</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
+    <div class="stat"><div class="lbl">Matchs · ${list.length}</div><div class="val c-g">${ind.toFixed(2)} €</div></div>
+    <div class="stat"><div class="lbl">Observations · ${obsList.length}</div><div class="val c-p">${obsInd.toFixed(2)} €</div></div>
+    <div class="stat"><div class="lbl">Total net${obsInclus()?'':' (hors obs.)'}</div><div class="val c-g">${tot.toFixed(2)} €</div><div class="sub"><span style="color:var(--grn)">💚 ${paye.toFixed(2)} €</span> · <span style="color:var(--yel)">⏳ ${att.toFixed(2)} €</span></div></div>`;
+  // Déroulé : matchs puis observations, avec sous-totaux
+  const bd=x=>x.statut==='paye'?'<span class="bdg bdg-ok">Payé</span>':'<span class="bdg bdg-w">Attente</span>';
+  const pl=p=>({Ligue:'Ligue',Comite:'Comité',Associations:'Assoc.'}[p]||p||'');
+  const sec=(titre,arr,vide)=>{
+    const rows=[...arr].sort((x,y)=>String(y.date||'').localeCompare(String(x.date||''))).map(x=>`<tr><td>${fd(x.date)}</td><td>${x.competition||''}</td><td>${x.club_dom||''}${x.club_ext?' – '+x.club_ext:''}</td><td>${pl(x.payeur)}</td><td>${bd(x)}</td><td><strong>${(x.indem||0).toFixed(2)}€</strong></td></tr>`).join('');
+    const sub=arr.reduce((s,x)=>s+(x.indem||0),0);
+    return `<div style="font-weight:700;margin:10px 0 4px">${titre} — ${arr.length} · ${sub.toFixed(2)} €</div><div class="tw"><table><thead><tr><th>Date</th><th>Comp.</th><th>Rencontre</th><th>Payeur</th><th>Statut</th><th>Montant</th></tr></thead><tbody>${rows||'<tr><td colspan="6">'+vide+'</td></tr>'}</tbody></table></div>`;
+  };
+  document.getElementById('d-detail').innerHTML=sec('🏀 Matchs',list,'Aucun match sur la période')+sec('👁 Observations',obsList,'Aucune observation sur la période')+`<div style="margin-top:12px;font-weight:700;text-align:right">Total ${obsInclus()?'matchs + observations':'matchs'} : ${tot.toFixed(2)} €</div>`;
   const clubs=[...new Set(list.map(m=>m.club_dom).filter(Boolean))];
   document.getElementById('d-clubs').innerHTML=clubs.length?clubs.map(c=>`<span class="tag">🏀 ${c}</span>`).join(''):'<span style="color:var(--mut);font-size:.8rem">Aucun match sur la période</span>';
   const cm={};list.forEach(m=>{if(m.collegue)cm[m.collegue]=(cm[m.collegue]||0)+1;});
