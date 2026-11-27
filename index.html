@@ -525,14 +525,14 @@ const COMP_GROUPS=[
   ['🏆 National',['PNM','PNF','NM3','NF3']],
   ['🥈 Régional',['RM2','RF2','RM3','RF3']],
   ['🥉 Départemental',['DM1','DF1','DM2','DF2','DM3','DF3']],
-  ['👦 Jeunes régional',['RMU21','RFU21','RMU17','RFU17','RMU15','RFU15','RMU13','RFU13']],
-  ['🧒 Jeunes départemental',['DMU17','DFU17','DMU15','DFU15','DMU13','DFU13','DMU11','DFU11']]
+  ['👦 Jeunes régional',['RMU21','RFU21','RMU17','RFU17','RMU18','RFU18','RMU15','RFU15','RMU13','RFU13']],
+  ['🧒 Jeunes départemental',['DMU18','DFU18','DMU17','DFU17','DMU15','DFU15','DMU13','DFU13','DMU11','DFU11']]
 ];
 const COMPS=[].concat(...COMP_GROUPS.map(g=>g[1]),['Autre']);
 const COMP_NIV_M=['PNM','NM3','RM2','RM3','DM1','DM2','DM3'],COMP_NIV_F=['PNF','NF3','RF2','RF3','DF1','DF2','DF3'];
 // anciens codes (avant alignement sur les codes FFBB des convocations)
 const LEGACY_COMP={R2M:'RM2',R2F:'RF2',R3M:'RM3',R3F:'RF3',D1M:'DM1',D1F:'DF1',D2M:'DM2',D2F:'DF2',D3M:'DM3',D3F:'DF3',U21M:'RMU21',U21F:'RFU21'};
-const DEF_RATES={PNM:45,PNF:45,NM3:68,NF3:68,RM2:43,RF2:43,RM3:43,RF3:43,DM1:41,DF1:41,DM2:41,DF2:41,DM3:41,DF3:41,RMU21:37,RFU21:37,RMU17:34,RFU17:34,RMU15:34,RFU15:34,RMU13:34,RFU13:34,DMU17:34,DFU17:34,DMU15:34,DFU15:34,DMU13:34,DFU13:34,DMU11:34,DFU11:34,Autre:15};
+const DEF_RATES={PNM:45,PNF:45,NM3:68,NF3:68,RM2:43,RF2:43,RM3:43,RF3:43,DM1:41,DF1:41,DM2:41,DF2:41,DM3:41,DF3:41,RMU21:37,RFU21:37,RMU18:34,RFU18:34,RMU17:34,RFU17:34,RMU15:34,RFU15:34,RMU13:34,RFU13:34,DMU18:34,DFU18:34,DMU17:34,DFU17:34,DMU15:34,DFU15:34,DMU13:34,DFU13:34,DMU11:34,DFU11:34,Autre:15};
 function compLabel(c){
   if(c==='PNM')return 'PNM · Pré-National M';if(c==='PNF')return 'PNF · Pré-National F';
   if(c==='NM3')return 'NM3 · Nationale 3 M';if(c==='NF3')return 'NF3 · Nationale 3 F';
@@ -677,7 +677,9 @@ function mapComp(raw){
   const t=up.replace(/\(.*$/,'').replace(/[^A-Z0-9]/g,'');
   if(COMPS.includes(t)&&t!=='Autre')return t;
   if(LEGACY_COMP[t])return LEGACY_COMP[t];
+  const tp=t.replace(/P\d+$/,''); // ex. DFU18-P2 -> DFU18
   if(/^[RD][MF][123]$/.test(t)||/^[RD][MF]U\d{2}$/.test(t)||/^N[MF][123]$/.test(t))return t; // code FFBB tel qu'imprimé
+  if(/^[RD][MF]U\d{2}$/.test(tp))return tp;
   if(/PR[EÉ]\s*-?\s*NAT/.test(up)){if(/FEM|FILLE/.test(up))return 'PNF';if(/MASC|GARC/.test(up))return 'PNM';}
   return 'Autre';
 }
@@ -707,6 +709,19 @@ function parseConvoc(text){
     }
     arbs.push({nom:m[1].trim(),km_aller:km,indemnite:ind});
   }
+  // Mission d'observation : section E « Evaluateur INDEMNISES PAR » + ligne « Observateur Arb : NOM (Licence… »
+  let observ=null;
+  for(let i=0;i<lines.length;i++){
+    const m=lines[i].match(/Observateur(?:\s*Arb\w*)?\s*:\s*(.+?)\s*\(\s*Licence/i);
+    if(!m)continue;
+    let km=null,ind=null;
+    for(let j=i;j<Math.min(i+4,lines.length);j++){
+      const k=lines[j].match(/kms?\s+aller\s*:\s*([\d.,]+)/i);if(k&&km==null)km=num(k[1]);
+      const n=lines[j].match(/Indemnit[ée]\s*:\s*([\d.,]+)/i);if(n&&ind==null)ind=num(n[1]);
+    }
+    observ={nom:m[1].trim(),km_aller:km,indemnite:ind};break;
+  }
+  const payE=T.match(/[EÉ]valuateur\s+INDEMNIS[EÉ]S?\s+PAR\s*:\s*(.+)/i);
   // Contact : correspondant du club recevant (section A) + son téléphone (portable de préférence)
   let contact='';
   const iA=lines.findIndex(l=>/RECEVANT\s*:/i.test(l));
@@ -735,7 +750,7 @@ function parseConvoc(text){
     club_ext:ext?balParen(ext[1]):'',
     salle_ville:ville,
     payeur:pay?pay[1].trim():'',
-    contact_dom:contact,arbitres:arbs,_warn:warn
+    contact_dom:contact,arbitres:arbs,observateur:observ,pay_obs:payE?payE[1].trim():'',_warn:warn
   };
 }
 let _tessW=null,_tessLog=null;
@@ -780,6 +795,8 @@ function mergeConvoc(a,b){
   if((!r.competition||r.competition==='Autre')&&b.competition)r.competition=b.competition;
   if(!arbsComplete(r)&&arbsComplete(b))r.arbitres=b.arbitres;
   else if(!r.arbitres.length&&b.arbitres.length)r.arbitres=b.arbitres;
+  if(!r.observateur&&b.observateur)r.observateur=b.observateur;else if(r.observateur&&b.observateur){if(r.observateur.km_aller==null)r.observateur.km_aller=b.observateur.km_aller;if(r.observateur.indemnite==null)r.observateur.indemnite=b.observateur.indemnite;}
+  if(!r.pay_obs&&b.pay_obs)r.pay_obs=b.pay_obs;
   r._warn=r.arbitres.length?b._warn&&!arbsComplete(r)?b._warn:r._warn:'';
   return r;
 }
@@ -795,7 +812,7 @@ async function localOCR(file,onStatus,partial){
       const out=await Promise.race([w.recognize(img),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))]);
       const d=parseConvoc(out.data.text);
       best=best?mergeConvoc(best,d):d;
-      if(partial?(best.date&&best.club_dom&&best.heure):convocOK(best))break;
+      if(partial?(best.date&&best.club_dom&&best.heure&&best.observateur&&best.observateur.indemnite!=null):convocOK(best))break;
     }
     if(partial){if(!best.date&&!best.club_dom)return{err:'Lecture locale incomplète'};return{d:best,model:'OCR local',warn:best._warn};}
     if(!best.date||!best.club_dom||!best.arbitres.length)return{err:'Lecture locale incomplète'};
@@ -1514,22 +1531,13 @@ Use null for missing.`;
     document.getElementById('ov').classList.remove('on');
     if(!res.d){document.getElementById('ocr-st-obs').innerHTML='⚠️ '+res.err+' — remplis manuellement ou réessaie';return;}
     const d=res.d;
-    if(Array.isArray(d.arbitres)&&d.arbitres.length){
-      const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      const keys=[profil.nom,profil.prenom].map(norm).map(x=>x.trim()).filter(Boolean);
-      const arbs=d.arbitres.filter(a=>a&&a.nom);
-      let idx=arbs.findIndex(a=>keys.length&&keys.every(k=>norm(a.nom).includes(k)));
-      if(idx<0)idx=arbs.findIndex(a=>keys.length&&keys.some(k=>norm(a.nom).includes(k)));
-      if(idx>=0){
-        if(arbs[idx].km_aller!=null)d.km_aller=arbs[idx].km_aller;
-        if(arbs[idx].indemnite!=null)d.indemnite=arbs[idx].indemnite;
-        const others=arbs.filter((_,i)=>i!==idx).map(a=>a.nom);
-        if(others.length&&!d.arbitre_observe)d.arbitre_observe=others.join(', ');
-      }else if(arbs.length===1){
-        if(arbs[0].km_aller!=null)d.km_aller=arbs[0].km_aller;
-        if(arbs[0].indemnite!=null)d.indemnite=arbs[0].indemnite;
-      }
+    if(d.observateur){
+      if(d.observateur.km_aller!=null)d.km_aller=d.observateur.km_aller;
+      if(d.observateur.indemnite!=null)d.indemnite=d.observateur.indemnite;
     }
+    if(!d.arbitre_observe&&Array.isArray(d.arbitres)&&d.arbitres.length)d.arbitre_observe=d.arbitres.filter(a=>a&&a.nom).map(a=>a.nom).join(', ');
+    if(d.pay_obs)d.payeur=d.pay_obs;
+    if(d.club_ext)d.club_ext=d.club_ext.replace(/\s*-\s*$/,'').trim();
     if(d.date)document.getElementById('o-date').value=d.date;
     if(d.heure)document.getElementById('o-heure').value=d.heure;
     if(d.competition)setComp('o-comp',d.competition);
